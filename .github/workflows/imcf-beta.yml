@@ -25,8 +25,11 @@ jobs:
           unzip fiji-linux64.zip
           ./Fiji.app/ImageJ-linux64 --headless --update edit-update-site ${UPDATE_SITE} https://sites.imagej.net/${UPDATE_SITE}/ "webdav:${WIKI_USER}:${UPDATE_PASS}" .
 
-      - name: 🏗 Install scripts and artifacts 🧱 into ImageJ/Fiji
-        run: ./manage/assemble-fiji-components.sh
+      - name: 👷 Install scripts and artifacts 💎👑 into ImageJ/Fiji
+        run: |
+          pwd
+          ls -la
+          bash ./manage/assemble-fiji-components.sh
 
       - name: Release to ImageJ update site
         run: |
