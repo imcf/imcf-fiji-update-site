@@ -6,7 +6,9 @@ on:
   workflow_dispatch:  # Allow to run this workflow manually from the Actions tab
 
 jobs:
-  build_release:
+
+  publish-update-site:
+
     runs-on: ubuntu-latest
     env:
       IJ_DOWNLOAD_URL: https://downloads.imagej.net/fiji/latest/fiji-linux64.zip
