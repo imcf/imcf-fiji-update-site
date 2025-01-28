@@ -1,7 +1,5 @@
 #!/bin/bash
 
-# first let's see what we're having here:
-git branch
-git branch -a
-ls -la
-ls -la ./Fiji.app/
+echo "Copying 🚚 extra script 📃 files to Fiji..."
+# cp -rv ./extra/Fiji.app/* ./Fiji.app/
+echo "Doing nothing this time."

@@ -1,4 +1,4 @@
-name: Deploy 🚚 contents ☕ 🔬 to UniBas-IMCF-Beta Update Site
+name: "[`UniBas-IMCF-Beta`] Deploy 🚚 contents ☕ 🔬 to Update Site"
 
 on:
   push:
@@ -6,7 +6,9 @@ on:
   workflow_dispatch:  # Allow to run this workflow manually from the Actions tab
 
 jobs:
-  build_release:
+
+  publish-update-site:
+
     runs-on: ubuntu-latest
     env:
       IJ_DOWNLOAD_URL: https://downloads.imagej.net/fiji/latest/fiji-linux64.zip
@@ -19,18 +21,29 @@ jobs:
       - name: 📥 Checkout
         uses: actions/checkout@v4
 
-      - name: 🌍 Download and 📦 unzip ImageJ/Fiji
+      - name: 🌍 📥 Download Fiji
+        run: curl --silent -O ${IJ_DOWNLOAD_URL}
+
+      - name: 📦 🎈 Unzip Fiji
+        run: unzip fiji-linux64.zip
+
+      - name: 🔁 Add Fiji update site
         run: |
-          curl --silent -O ${IJ_DOWNLOAD_URL}
-          unzip fiji-linux64.zip
-          ./Fiji.app/ImageJ-linux64 --headless --update edit-update-site ${UPDATE_SITE} https://sites.imagej.net/${UPDATE_SITE}/ "webdav:${WIKI_USER}:${UPDATE_PASS}" .
+          ./Fiji.app/ImageJ-linux64 \
+              --headless \
+              --update \
+                  edit-update-site \
+                  ${UPDATE_SITE} \
+                  https://sites.imagej.net/${UPDATE_SITE}/ \
+                  "webdav:${WIKI_USER}:${UPDATE_PASS}" \
+                  .
 
       - name: 👷 Install scripts and artifacts 💎👑 into ImageJ/Fiji
-        run: |
-          pwd
-          ls -la
-          bash ./manage/assemble-fiji-components.sh
+        run: bash ./manage/assemble-fiji-components.sh
 
-      - name: Release to ImageJ update site
+      - name: 🎁 📤 Release to ImageJ update site
         run: |
-          ./Fiji.app/ImageJ-linux64 --headless --update upload-complete-site --force ${UPDATE_SITE}
+          ./Fiji.app/ImageJ-linux64 \
+              --headless \
+              --update upload-complete-site \
+              --force ${UPDATE_SITE}
