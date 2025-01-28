@@ -1,4 +1,4 @@
-name: "[`UniBas-IMCF-Beta`] Deploy 🚚 contents ☕ 🔬 to Update Site"
+name: Deploy 🚚 [UniBas-IMCF-Beta]
 
 on:
   push:
