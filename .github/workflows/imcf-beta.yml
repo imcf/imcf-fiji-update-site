@@ -29,10 +29,8 @@ jobs:
 
       - name: 👷 Install scripts and artifacts 💎👑 into ImageJ/Fiji
         run: |
-          pwd
-          ls -la
           bash ./manage/assemble-fiji-components.sh
 
-      - name: 📤🎁 Release to ImageJ update site
+      - name: 🎁 📤 Release to ImageJ update site
         run: |
           ./Fiji.app/ImageJ-linux64 --headless --update upload-complete-site --force ${UPDATE_SITE}
