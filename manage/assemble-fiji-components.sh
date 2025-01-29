@@ -27,7 +27,8 @@ function download_jar() {
     unzip artifact.jar META-INF/MANIFEST.MF
     JAR_VERSION=$(
         grep "^Implementation-Version:" META-INF/MANIFEST.MF |
-            cut -d ' ' -f 2
+            cut -d ' ' -f 2 |
+            tr -d '\r'
     )
     FINAL_NAME="${JAR_NAME}-${JAR_VERSION}.jar"
     mv -v artifact.jar "$OLDPWD/Fiji.app/jars/$FINAL_NAME"
