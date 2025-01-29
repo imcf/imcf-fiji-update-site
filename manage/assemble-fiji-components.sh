@@ -42,6 +42,19 @@ function download_jar() {
     echo -e "Downloading 🌍 📥 JAR for [$JAR_NAME]: ✅\n--"
 }
 
+function exit_usage() {
+    echo -e "\nUsage: $0 <Update-Site-Name>\n"
+    exit 1
+}
+
+[ $# -lt 1 ] && exit_usage
+UPDATE_SITE="$1"
+SITE_SETTINGS="$(dirname "$0")/site-settings/$UPDATE_SITE"
+if ! [ -d "$SITE_SETTINGS" ]; then
+    echo "ERROR: can't find directory [$SITE_SETTINGS]!"
+    exit 2
+fi
+
 echo "Copying 🚚 extra script 📃 files to Fiji..."
 cp -rv ./extra/Fiji.app/* ./Fiji.app/
 echo -e "Copying 🚚 extra script 📃 files to Fiji: ✅\n--"
