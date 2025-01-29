@@ -39,7 +39,7 @@ jobs:
                   .
 
       - name: 👷 Install scripts and artifacts 💎👑 into ImageJ/Fiji
-        run: bash ./manage/assemble-fiji-components.sh
+        run: bash ./manage/assemble-fiji-components.sh ${UPDATE_SITE}
 
       - name: 🎁 📤 Release to ImageJ update site
         run: |
