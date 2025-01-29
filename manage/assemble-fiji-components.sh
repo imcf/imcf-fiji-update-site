@@ -59,5 +59,7 @@ echo "Copying 🚚 extra script 📃 files to Fiji..."
 cp -rv ./extra/Fiji.app/* ./Fiji.app/
 echo -e "Copying 🚚 extra script 📃 files to Fiji: ✅\n--"
 
-download_jar "python-imcflibs"
-download_jar "python-imcflibs" "1.4.0"
+for FILE in $(find "$SITE_SETTINGS" -name '*.inc.sh'); do
+    source "$FILE"
+    download_jar "$JAR_NAME" "$JAR_VERSION"
+done
