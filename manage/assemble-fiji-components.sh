@@ -25,7 +25,7 @@ function download_jar() {
     # have the files named in the same way as a maven build would call them (so
     # `python-imcflibs-1.5.0-SNAPSHOT.jar` for this example). Therefore we
     # download the file to a temp name and derive the final name from metadata.
-    echo "Downloading 🌍 📥 JAR for [$JAR_NAME]..."
+    echo -e "--\nDownloading 🌍 📥 JAR for [$JAR_NAME]..."
     echo "URI: $URI"
     wget --quiet -O artifact.jar "$URI"
     unzip artifact.jar META-INF/MANIFEST.MF
@@ -55,7 +55,7 @@ if ! [ -d "$SITE_SETTINGS" ]; then
     exit 2
 fi
 
-echo "Copying 🚚 extra script 📃 files to Fiji..."
+echo -e "--\nCopying 🚚 extra script 📃 files to Fiji..."
 cp -rv ./extra/Fiji.app/* ./Fiji.app/
 echo -e "Copying 🚚 extra script 📃 files to Fiji: ✅\n--"
 
