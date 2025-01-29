@@ -1,5 +1,8 @@
 #!/bin/bash
 
+set -o errexit
+set -o nounset
+
 NEXUS_SERVER="https://maven.scijava.org"
 CONTENT_PATH="service/local/artifact/maven/content"
 
