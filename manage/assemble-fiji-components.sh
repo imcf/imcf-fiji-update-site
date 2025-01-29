@@ -23,14 +23,14 @@ function download_jar() {
     # `python-imcflibs-1.5.0-SNAPSHOT.jar` for this example). Therefore we
     # download the file to a temp name and derive the final name from metadata.
     echo "Downloading JAR from [$URI]..."
-    wget -O tmp.jar "$URI"
-    unzip tmp.jar META-INF/MANIFEST.MF
+    wget --quiet -O artifact.jar "$URI"
+    unzip artifact.jar META-INF/MANIFEST.MF
     JAR_VERSION=$(
         grep "^Implementation-Version:" META-INF/MANIFEST.MF |
             cut -d ' ' -f 2
     )
     FINAL_NAME="${JAR_NAME}-${JAR_VERSION}.jar"
-    mv -v tmp.jar "$OLDPWD/Fiji.app/jars/$FINAL_NAME"
+    mv -v artifact.jar "$OLDPWD/Fiji.app/jars/$FINAL_NAME"
 }
 
 echo "Copying 🚚 extra script 📃 files to Fiji..."
