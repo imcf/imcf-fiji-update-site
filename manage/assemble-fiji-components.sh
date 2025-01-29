@@ -43,7 +43,7 @@ function download_jar() {
 }
 
 echo "Copying 🚚 extra script 📃 files to Fiji..."
-# cp -rv ./extra/Fiji.app/* ./Fiji.app/
+cp -rv ./extra/Fiji.app/* ./Fiji.app/
 echo -e "Copying 🚚 extra script 📃 files to Fiji: ✅\n--"
 
 download_jar "python-imcflibs"
