@@ -37,7 +37,7 @@ function download_jar() {
     FINAL_NAME="${JAR_NAME}-${JAR_VERSION}.jar"
     mv -v artifact.jar "$OLDPWD/Fiji.app/jars/$FINAL_NAME"
     # shellcheck disable=SC2164
-    cd -
+    cd "$OLDPWD"
     rm -r "$TMPDIR"
     echo -e "Downloading 🌍 📥 JAR for [$JAR_NAME]: ✅\n--"
 }
