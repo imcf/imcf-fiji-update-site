@@ -49,7 +49,7 @@ function exit_usage() {
 
 [ $# -lt 1 ] && exit_usage
 UPDATE_SITE="$1"
-SITE_SETTINGS="$(dirname "$0")/site-settings/$UPDATE_SITE"
+SITE_SETTINGS="$(dirname "$0")/../site-settings/$UPDATE_SITE"
 if ! [ -d "$SITE_SETTINGS" ]; then
     echo "ERROR: can't find directory [$SITE_SETTINGS]!"
     exit 2
@@ -59,7 +59,7 @@ echo -e "--\nCopying 🚚 extra script 📃 files to Fiji..."
 cp -rv ./extra/Fiji.app/* ./Fiji.app/
 echo -e "Copying 🚚 extra script 📃 files to Fiji: ✅\n--"
 
-for FILE in $(find "$SITE_SETTINGS" -name '*.inc.sh'); do
+for FILE in $(find "$SITE_SETTINGS/jars/" -name '*.inc.sh'); do
     source "$FILE"
     download_jar "$JAR_NAME" "$JAR_VERSION"
 done
