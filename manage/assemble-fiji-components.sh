@@ -61,7 +61,7 @@ if ! [ -d "./Fiji.app" ]; then
 fi
 
 echo -e "--\nCopying 🚚 extra script 📃 files to Fiji..."
-cp -rv "$SITE_SETTINGS/extra/Fiji.app"/* ./Fiji.app/
+cp -rv --dereference "$SITE_SETTINGS/extra/Fiji.app"/* ./Fiji.app/
 echo -e "Copying 🚚 extra script 📃 files to Fiji: ✅\n--"
 
 for FILE in $(find "$SITE_SETTINGS/jars/" -name '*.inc.sh'); do
