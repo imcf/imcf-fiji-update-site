@@ -30,15 +30,12 @@ function download_jar() {
     # download the file to a temp name and derive the final name from metadata.
     echo -e "--\nDownloading 🌍 📥 JAR for [$JAR_NAME]..."
     echo "URI: $URI"
-    wget --quiet -O artifact.jar "$URI"
-    unzip artifact.jar META-INF/MANIFEST.MF
-    JAR_VERSION=$(
-        grep "^Implementation-Version:" META-INF/MANIFEST.MF |
-            cut -d ' ' -f 2 |
-            tr -d '\r'
-    )
-    FINAL_NAME="${JAR_NAME}-${JAR_VERSION}.jar"
-    mv -v artifact.jar "$OLDPWD/Fiji.app/jars/$FINAL_NAME"
+
+    # The `--content-disposition` switch will use the file name that is provided
+    # by the server to name the downloaded artifact:
+    wget --quiet --content-disposition "$URI"
+    ARTIFACT="$(find . -mindepth 1 -maxdepth 1 -name "$JAR_NAME-*.jar")"
+    mv -v "$ARTIFACT" "$OLDPWD/Fiji.app/jars/"
     # shellcheck disable=SC2164
     cd "$OLDPWD"
     rm -r "$TMPDIR"
