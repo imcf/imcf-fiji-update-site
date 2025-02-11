@@ -55,6 +55,11 @@ if ! [ -d "$SITE_SETTINGS" ]; then
     exit 2
 fi
 
+if ! [ -d "./Fiji.app" ]; then
+    echo "🔥 WARNING: no local Fiji.app directory, assuming a dry-run! 🔥"
+    mkdir -pv ./Fiji.app/jars/
+fi
+
 echo -e "--\nCopying 🚚 extra script 📃 files to Fiji..."
 cp -rv "$SITE_SETTINGS/extra/Fiji.app"/* ./Fiji.app/
 echo -e "Copying 🚚 extra script 📃 files to Fiji: ✅\n--"
