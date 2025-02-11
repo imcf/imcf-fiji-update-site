@@ -2,4 +2,4 @@
 # shellcheck disable=SC2034
 
 JAR_NAME="imcf-fiji-scripts"
-JAR_VERSION="LATEST"
+NEXUS_REPO="snapshots"

@@ -7,10 +7,13 @@ NEXUS_SERVER="https://maven.scijava.org"
 CONTENT_PATH="service/local/artifact/maven/content"
 
 function download_jar() {
+    ### Download a JAR from SciJava Nexus.
+    # Param $1: the name of the JAR.
+    # Param $2 (optional): the name of the Nexus repo (default=`snapshots`)
+    # Param $3 (optional): the JAR version (default=`LATEST`).
     JAR_NAME="$1"
-    JAR_VERSION="${2:-LATEST}"
-    NEXUS_REPO="releases"
-    [ "$JAR_VERSION" = "LATEST" ] && NEXUS_REPO="snapshots"
+    NEXUS_REPO="${2:-snapshots}"
+    JAR_VERSION="${3:-LATEST}"
     URI="$NEXUS_SERVER/$CONTENT_PATH?r=$NEXUS_REPO"
     GAV="g=ch.unibas.biozentrum.imcf&a=${JAR_NAME}&v=${JAR_VERSION}"
     URI="${URI}&${GAV}"
@@ -60,6 +63,10 @@ cp -rv "$SITE_SETTINGS/extra/Fiji.app"/* ./Fiji.app/
 echo -e "Copying 🚚 extra script 📃 files to Fiji: ✅\n--"
 
 for FILE in $(find "$SITE_SETTINGS/jars/" -name '*.inc.sh'); do
+    # empty vars to prevent mixups between loops:
+    JAR_NAME=""
+    JAR_VERSION=""
+    NEXUS_REPO=""
     source "$FILE"
-    download_jar "$JAR_NAME" "$JAR_VERSION"
+    download_jar "$JAR_NAME" "$NEXUS_REPO" "$JAR_VERSION"
 done
