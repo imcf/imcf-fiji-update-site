@@ -67,6 +67,8 @@ function checkFileAndSetPrefs() {
     } else {
         log_debug("'imcf' key not found in imcf-settings.json.");
     }
+
+    Prefs.set("bioformats.zeissczi.allow.autostitch", false);
 }
 
 // Utility function to read file content
