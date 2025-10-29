@@ -19,8 +19,10 @@ jobs:
         run: |
           if [ "${{ matrix.os }}" == "windows-latest" ]; then
             echo "PLATFORM=win64" >> $GITHUB_ENV
+            echo "FIJI_SUFFIX=windows-x64" >> $GITHUB_ENV
           else
             echo "PLATFORM=linux64" >> $GITHUB_ENV
+            echo "FIJI_SUFFIX=linux-x64" >> $GITHUB_ENV
           fi
           echo "Platform set to $PLATFORM"
 
@@ -55,14 +57,14 @@ jobs:
 
       - name: 🚚 Rename extracted Fiji.app to platform directory
         run: |
-          mv Fiji.app Fiji.app-${{ env.PLATFORM }}
+          mv Fiji Fiji.app-${{ env.PLATFORM }}
           echo "✅ Extracted to Fiji.app-${{ env.PLATFORM }}"
 
       - name: 🛠️ Set Fiji command path
         shell: bash
         run: |
           FIJI_DIR="Fiji.app-${{ env.PLATFORM }}"
-          FIJI_CMD="./${FIJI_DIR}/ImageJ-${{ env.PLATFORM }}"
+          FIJI_CMD="./${FIJI_DIR}/fiji-${{ env.FIJI_SUFFIX }}"
           if [ "${{ env.PLATFORM }}" = "win64" ]; then
             FIJI_CMD="$FIJI_CMD.exe"
           fi
