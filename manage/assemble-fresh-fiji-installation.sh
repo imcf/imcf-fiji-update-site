@@ -39,7 +39,6 @@ fi
 # echo "Detected platform: $PLATFORM"
 
 echo ">>> Working for platform: $PLATFORM"
-echo ">>> Version of the package: $NEW"
 DL_BASE="https://downloads.imagej.net/fiji/latest"
 PKG="fiji-${PLATFORM}.zip"
 FIJI_DIR="Fiji.app-${PLATFORM}"
@@ -59,6 +58,7 @@ if ! [ -r "$PKG" ]; then
     echo "Downloading the latest Fiji package: $DL_URI"
     echo
     curl -k "$DL_URI" -o $PKG
+    echo "Downloaded the latest Fiji package: [$PKG]"
 else
     echo "Using the existing fiji download package: [$PKG]"
 fi
