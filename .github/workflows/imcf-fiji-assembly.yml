@@ -36,25 +36,6 @@ jobs:
           unzip -qq fiji-${{ env.PLATFORM }}.zip
           echo "✅ Extracted to Fiji.app-${{ env.PLATFORM }}"
 
-      - name: 🔎 Debug after extract (temporary)
-        if: always()
-        shell: bash
-        run: |
-          echo "--- listing working directory ---"
-          pwd
-          ls -la
-          echo "--- listing Fiji.app dir (if present) ---"
-          ls -la Fiji.app-${{ env.PLATFORM }} || true
-          echo "--- disk usage ---"
-          df -h || true
-          echo "--- size of extracted tree (summary) ---"
-          du -sh Fiji.app-${{ env.PLATFORM }} || true
-          echo "--- active processes (top 20) ---"
-          ps aux | head -n 20 || true
-          echo "--- done debug step ---"
-          # keep runner alive briefly so we can see the next log lines in Actions UI
-          sleep 8
-
       - name: 🚚 Rename extracted Fiji.app to platform directory
         run: |
           mv Fiji Fiji.app-${{ env.PLATFORM }}
@@ -76,7 +57,7 @@ jobs:
         run: |
           echo "Adding update sites using $FIJI_CMD"
           set -x
-          $FIJI_CMD --ij2 --headless --console --run "add-update-sites.py" sites_collection='update-sites-all.json'
+          $FIJI_CMD --ij2 --headless --console --run "./manage/add-update-sites.py" sites_collection='./manage/update-sites-all.json'
           set +x
 
       - name: 🔄 Run Fiji updater
