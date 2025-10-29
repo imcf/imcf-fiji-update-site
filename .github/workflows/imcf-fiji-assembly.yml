@@ -34,6 +34,25 @@ jobs:
           unzip -qq fiji-${{ env.PLATFORM }}.zip -d ./Fiji.app-${{ env.PLATFORM }}
           echo "✅ Extracted to Fiji.app-${{ env.PLATFORM }}"
 
+      - name: 🔎 Debug after extract (temporary)
+        if: always()
+        shell: bash
+        run: |
+          echo "--- listing working directory ---"
+          pwd
+          ls -la
+          echo "--- listing Fiji.app dir (if present) ---"
+          ls -la Fiji.app-${{ env.PLATFORM }} || true
+          echo "--- disk usage ---"
+          df -h || true
+          echo "--- size of extracted tree (summary) ---"
+          du -sh Fiji.app-${{ env.PLATFORM }} || true
+          echo "--- active processes (top 20) ---"
+          ps aux | head -n 20 || true
+          echo "--- done debug step ---"
+          # keep runner alive briefly so we can see the next log lines in Actions UI
+          sleep 8
+
       # - name: 🚚 Move extracted Fiji.app to platform directory
       #   run: |
       #     mv Fiji.app Fiji.app-${{ env.PLATFORM }}
