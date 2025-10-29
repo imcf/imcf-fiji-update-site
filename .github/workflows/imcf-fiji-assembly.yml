@@ -29,7 +29,7 @@ jobs:
 
       - name: 👷 Build Fiji with all IMCF required update sites
         shell: bash
-        run: bash assemble-fiji-components.sh update-sites-all.json ${{ env.PLATFORM }}
+        run: bash assemble-fresh-fiji-installation.sh update-sites-all.json ${{ env.PLATFORM }}
 
       - name: 📦 Upload Fiji artifact
         uses: actions/upload-artifact@v4
