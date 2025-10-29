@@ -11,9 +11,14 @@ jobs:
       matrix:
         os: [ubuntu-latest, windows-latest]
     runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        working-directory: ${{ github.workspace }}/manage
+
     steps:
       - name: 📥 Checkout
         uses: actions/checkout@v4
+
       - name: Set platform variable
         run: |
           if [ "${{ matrix.os }}" == "windows-latest" ]; then
@@ -24,7 +29,8 @@ jobs:
 
       - name: 👷 Build Fiji with all IMCF required update sites
         shell: bash
-        run: bash ./manage/assemble-fiji-components.sh ./manage/update-sites-all.json ${{ env.PLATFORM }}
+        run: bash assemble-fiji-components.sh update-sites-all.json ${{ env.PLATFORM }}
+
       - name: 📦 Upload Fiji artifact
         uses: actions/upload-artifact@v4
         with:
@@ -34,17 +40,20 @@ jobs:
   release:
     needs: assemble-fiji
     runs-on: ubuntu-latest
+
     steps:
       - name: 📥 Download Linux artifact
         uses: actions/download-artifact@v4
         with:
           name: fiji-ubuntu-latest
           path: ./artifacts/linux
+
       - name: 📥 Download Windows artifact
         uses: actions/download-artifact@v4
         with:
           name: fiji-windows-latest
           path: ./artifacts/windows
+
       - name: 🚀 Create Release and Upload Artifacts
         uses: softprops/action-gh-release@v1
         with:
