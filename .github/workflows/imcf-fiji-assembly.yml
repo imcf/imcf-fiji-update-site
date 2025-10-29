@@ -28,16 +28,8 @@ jobs:
         run: |
           curl https://downloads.imagej.net/fiji/latest/fiji-latest-${{ env.PLATFORM }}-jdk.zip -o ./fiji-${{ env.PLATFORM }}.zip
 
-      - name: 🐛 Debug Fiji zip file
-        run: |
-          ls -lh fiji-${{ env.PLATFORM }}.zip
-          file fiji-${{ env.PLATFORM }}.zip || true
-          head -20 fiji-${{ env.PLATFORM }}.zip || true
-
       - name: 📂 Extract Fiji package
-        uses: montudor/action-zip@v1
-        with:
-          args: unzip -qq fiji-${{ env.PLATFORM }}.zip
+        run: 7zip x fiji-${{ env.PLATFORM }}.zip
 
       - name: 🚚 Move extracted Fiji.app to platform directory
         run: |
