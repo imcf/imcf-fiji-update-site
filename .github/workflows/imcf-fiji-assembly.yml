@@ -26,7 +26,7 @@ jobs:
 
       - name: 📦 Download Fiji package
         run: |
-          curl https://downloads.imagej.net/fiji/latest/fiji-${{ env.PLATFORM }}.zip -o ./fiji-${{ env.PLATFORM }}.zip
+          curl https://downloads.imagej.net/fiji/latest/fiji-latest-${{ env.PLATFORM }}-jdk.zip -o ./fiji-${{ env.PLATFORM }}.zip
 
       - name: 📂 Extract Fiji package
         uses: montudor/action-zip@v1
