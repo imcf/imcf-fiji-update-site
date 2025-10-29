@@ -2,8 +2,8 @@ name: IMCF Fiji Assembly 🏗️
 
 on:
   push:
-    branches: [main, ga_assembly] # Trigger the workflow on push to the main branch
-  workflow_dispatch: # Allow to run this workflow manually from the Actions tab
+    branches: [main, ga_assembly]
+  workflow_dispatch:
 
 jobs:
   assemble-fiji:
@@ -11,52 +11,112 @@ jobs:
       matrix:
         os: [ubuntu-latest, windows-latest]
     runs-on: ${{ matrix.os }}
-    defaults:
-      run:
-        working-directory: ${{ github.workspace }}/manage
-
     steps:
-      - name: 📥 Checkout
+      - name: 📥 Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set platform variable
+      - name: 🏁 Set platform variable
+        id: set_platform
         run: |
           if [ "${{ matrix.os }}" == "windows-latest" ]; then
             echo "PLATFORM=win64" >> $GITHUB_ENV
+            echo "::notice::Platform set to win64"
           else
             echo "PLATFORM=linux64" >> $GITHUB_ENV
+            echo "::notice::Platform set to linux64"
           fi
 
-      - name: 👷 Build Fiji with all IMCF required update sites
-        shell: bash
-        run: bash assemble-fresh-fiji-installation.sh update-sites-all.json ${{ env.PLATFORM }}
+      - name: 📦 Download Fiji package
+        run: |
+          echo "::group::📦 Download Fiji"
+          echo "Downloading Fiji for platform: $PLATFORM"
+          DL_BASE="https://downloads.imagej.net/fiji/latest"
+          PKG="fiji-${PLATFORM}.zip"
+          DL_URI="$DL_BASE/$PKG"
+          if [ ! -r "$PKG" ]; then
+            echo "🌍 Downloading Fiji from $DL_URI"
+            curl -k "$DL_URI" -o "$PKG"
+            echo "✅ Downloaded Fiji package: $PKG"
+          else
+            echo "📦 Using existing Fiji package: $PKG"
+          fi
+          echo "::endgroup::"
+
+      - name: 📂 Extract Fiji package
+        run: |
+          echo "::group::📂 Extract Fiji"
+          FIJI_DIR="Fiji.app-${PLATFORM}"
+          PKG="fiji-${PLATFORM}.zip"
+          echo "Extracting Fiji package: $PKG"
+          unzip -Xq "$PKG"
+          mv "Fiji.app" "$FIJI_DIR"
+          echo "✅ Extracted to $FIJI_DIR"
+          echo "::endgroup::"
+
+      - name: 🖼️ Extract sample images (optional)
+        run: |
+          echo "::group::🖼️ Extract sample images"
+          PKG_SAMPLES="imagej-sample-images.zip"
+          FIJI_DIR="Fiji.app-${PLATFORM}"
+          if [ -r "$PKG_SAMPLES" ]; then
+            echo "Extracting sample images: $PKG_SAMPLES"
+            unzip -q "$PKG_SAMPLES" -d "$FIJI_DIR"
+            echo "✅ Sample images extracted"
+          else
+            echo "⚠️ Couldn't find $PKG_SAMPLES, skipping sample images"
+          fi
+          echo "::endgroup::"
+
+      - name: 🛠️ Add required update sites
+        run: |
+          echo "::group::🛠️ Add update sites"
+          FIJI_DIR="Fiji.app-${PLATFORM}"
+          FIJI_CMD="./${FIJI_DIR}/ImageJ-${PLATFORM}"
+          if [ "$PLATFORM" == "win64" ]; then
+            FIJI_CMD="$FIJI_CMD.exe"
+          fi
+          echo "Adding update sites using $FIJI_CMD"
+          $FIJI_CMD --ij2 --headless --console --run "add-update-sites.py" sites_collection='update-sites-all.json'
+          echo "::endgroup::"
+
+      - name: 🔄 Run Fiji updater
+        run: |
+          echo "::group::🔄 Run Fiji updater"
+          FIJI_DIR="Fiji.app-${PLATFORM}"
+          FIJI_CMD="./${FIJI_DIR}/ImageJ-${PLATFORM}"
+          if [ "$PLATFORM" == "win64" ]; then
+            FIJI_CMD="$FIJI_CMD.exe"
+          fi
+          echo "Running Fiji updater..."
+          $FIJI_CMD --console --update update
+          $FIJI_CMD --console --update update
+          $FIJI_CMD --headless
+          echo "✅ Fiji updater finished"
+          echo "::endgroup::"
 
       - name: 📦 Upload Fiji artifact
         uses: actions/upload-artifact@v4
         with:
           name: fiji-${{ matrix.os }}
-          path: ./output/*
+          path: Fiji.app-${{ env.PLATFORM }}
 
   release:
     needs: assemble-fiji
     runs-on: ubuntu-latest
-
     steps:
       - name: 📥 Download Linux artifact
         uses: actions/download-artifact@v4
         with:
           name: fiji-ubuntu-latest
           path: ./artifacts/linux
-
       - name: 📥 Download Windows artifact
         uses: actions/download-artifact@v4
         with:
           name: fiji-windows-latest
           path: ./artifacts/windows
-
       - name: 🚀 Create Release and Upload Artifacts
         uses: softprops/action-gh-release@v1
         with:
           files: |
             ./artifacts/linux/*
-              ./artifacts/windows/*
+            ./artifacts/windows/*
