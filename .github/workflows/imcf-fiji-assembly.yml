@@ -15,84 +15,56 @@ jobs:
       - name: 📥 Checkout repository
         uses: actions/checkout@v4
 
-      - name: 🏁 Set platform variable
-        id: set_platform
+      - name: 🖥️ Set platform variable
         run: |
           if [ "${{ matrix.os }}" == "windows-latest" ]; then
             echo "PLATFORM=win64" >> $GITHUB_ENV
-            echo "::notice::Platform set to win64"
           else
             echo "PLATFORM=linux64" >> $GITHUB_ENV
-            echo "::notice::Platform set to linux64"
           fi
+          echo "Platform set to $PLATFORM"
 
       - name: 📦 Download Fiji package
         run: |
-          echo "::group::📦 Download Fiji"
-          echo "Downloading Fiji for platform: $PLATFORM"
-          DL_BASE="https://downloads.imagej.net/fiji/latest"
-          PKG="fiji-${PLATFORM}.zip"
-          DL_URI="$DL_BASE/$PKG"
-          if [ ! -r "$PKG" ]; then
-            echo "🌍 Downloading Fiji from $DL_URI"
-            curl -k "$DL_URI" -o "$PKG"
-            echo "✅ Downloaded Fiji package: $PKG"
-          else
-            echo "📦 Using existing Fiji package: $PKG"
-          fi
-          echo "::endgroup::"
+          curl https://downloads.imagej.net/fiji/latest/fiji-${{ env.PLATFORM }}.zip -o ./fiji-${{ env.PLATFORM }}.zip
 
       - name: 📂 Extract Fiji package
-        run: |
-          echo "::group::📂 Extract Fiji"
-          FIJI_DIR="Fiji.app-${PLATFORM}"
-          PKG="fiji-${PLATFORM}.zip"
-          echo "Extracting Fiji package: $PKG"
-          unzip -Xq "$PKG"
-          mv "Fiji.app" "$FIJI_DIR"
-          echo "✅ Extracted to $FIJI_DIR"
-          echo "::endgroup::"
+        uses: montudor/action-zip@v1
+        with:
+          args: unzip -qq fiji-${{ env.PLATFORM }}.zip
 
-      - name: 🖼️ Extract sample images (optional)
+      - name: 🚚 Move extracted Fiji.app to platform directory
         run: |
-          echo "::group::🖼️ Extract sample images"
-          PKG_SAMPLES="imagej-sample-images.zip"
-          FIJI_DIR="Fiji.app-${PLATFORM}"
-          if [ -r "$PKG_SAMPLES" ]; then
-            echo "Extracting sample images: $PKG_SAMPLES"
-            unzip -q "$PKG_SAMPLES" -d "$FIJI_DIR"
-            echo "✅ Sample images extracted"
-          else
-            echo "⚠️ Couldn't find $PKG_SAMPLES, skipping sample images"
+          mv Fiji.app Fiji.app-${{ env.PLATFORM }}
+          echo "✅ Extracted to Fiji.app-${{ env.PLATFORM }}"
+
+      - name: 🛠️ Set Fiji command path
+        shell: bash
+        run: |
+          FIJI_DIR="Fiji.app-${{ env.PLATFORM }}"
+          FIJI_CMD="./${FIJI_DIR}/ImageJ-${{ env.PLATFORM }}"
+          if [ "${{ env.PLATFORM }}" = "win64" ]; then
+            FIJI_CMD="$FIJI_CMD.exe"
           fi
-          echo "::endgroup::"
+          echo "FIJI_CMD=$FIJI_CMD" >> $GITHUB_ENV
+          echo "Fiji command set to $FIJI_CMD"
 
       - name: 🛠️ Add required update sites
+        shell: bash
         run: |
-          echo "::group::🛠️ Add update sites"
-          FIJI_DIR="Fiji.app-${PLATFORM}"
-          FIJI_CMD="./${FIJI_DIR}/ImageJ-${PLATFORM}"
-          if [ "$PLATFORM" == "win64" ]; then
-            FIJI_CMD="$FIJI_CMD.exe"
-          fi
           echo "Adding update sites using $FIJI_CMD"
+          set -x
           $FIJI_CMD --ij2 --headless --console --run "add-update-sites.py" sites_collection='update-sites-all.json'
-          echo "::endgroup::"
+          set +x
 
       - name: 🔄 Run Fiji updater
+        shell: bash
         run: |
-          echo "::group::🔄 Run Fiji updater"
-          FIJI_DIR="Fiji.app-${PLATFORM}"
-          FIJI_CMD="./${FIJI_DIR}/ImageJ-${PLATFORM}"
-          if [ "$PLATFORM" == "win64" ]; then
-            FIJI_CMD="$FIJI_CMD.exe"
-          fi
           echo "Running Fiji updater..."
           $FIJI_CMD --console --update update
           $FIJI_CMD --console --update update
           $FIJI_CMD --headless
           echo "✅ Fiji updater finished"
-          echo "::endgroup::"
 
       - name: 📦 Upload Fiji artifact
         uses: actions/upload-artifact@v4
