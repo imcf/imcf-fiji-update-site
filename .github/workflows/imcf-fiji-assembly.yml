@@ -1,0 +1,53 @@
+name: IMCF Fiji Assembly 🏗️
+
+on:
+  push:
+    branches: [main, ga_assembly] # Trigger the workflow on push to the main branch
+  workflow_dispatch: # Allow to run this workflow manually from the Actions tab
+
+jobs:
+  assemble-fiji:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+      - name: Set platform variable
+        run: |
+          if [ "${{ matrix.os }}" == "windows-latest" ]; then
+            echo "PLATFORM=win64" >> $GITHUB_ENV
+          else
+            echo "PLATFORM=linux64" >> $GITHUB_ENV
+          fi
+
+      - name: 👷 Build Fiji with all IMCF required update sites
+        shell: bash
+        run: bash ./manage/assemble-fiji-components.sh ./manage/update-sites-all.json ${{ env.PLATFORM }}
+      - name: 📦 Upload Fiji artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: fiji-${{ matrix.os }}
+          path: ./output/*
+
+  release:
+    needs: assemble-fiji
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📥 Download Linux artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: fiji-ubuntu-latest
+          path: ./artifacts/linux
+      - name: 📥 Download Windows artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: fiji-windows-latest
+          path: ./artifacts/windows
+      - name: 🚀 Create Release and Upload Artifacts
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            ./artifacts/linux/*
+              ./artifacts/windows/*
