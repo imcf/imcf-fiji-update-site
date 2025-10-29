@@ -31,7 +31,7 @@ jobs:
       - name: 📂 Extract Fiji package
         shell: bash
         run: |
-          unzip -qq fiji-${{ env.PLATFORM }}.zip -d ./Fiji.app-${{ env.PLATFORM }}
+          unzip -qq fiji-${{ env.PLATFORM }}.zip
           echo "✅ Extracted to Fiji.app-${{ env.PLATFORM }}"
 
       - name: 🔎 Debug after extract (temporary)
@@ -53,10 +53,10 @@ jobs:
           # keep runner alive briefly so we can see the next log lines in Actions UI
           sleep 8
 
-      # - name: 🚚 Move extracted Fiji.app to platform directory
-      #   run: |
-      #     mv Fiji.app Fiji.app-${{ env.PLATFORM }}
-      #     echo "✅ Extracted to Fiji.app-${{ env.PLATFORM }}"
+      - name: 🚚 Rename extracted Fiji.app to platform directory
+        run: |
+          mv Fiji.app Fiji.app-${{ env.PLATFORM }}
+          echo "✅ Extracted to Fiji.app-${{ env.PLATFORM }}"
 
       - name: 🛠️ Set Fiji command path
         shell: bash
