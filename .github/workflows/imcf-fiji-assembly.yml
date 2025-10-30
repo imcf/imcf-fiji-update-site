@@ -52,6 +52,25 @@ jobs:
           echo "FIJI_CMD=$FIJI_CMD" >> $GITHUB_ENV
           echo "Fiji command set to $FIJI_CMD"
 
+      - name: 🔎 Debug by lising files (temporary)
+        if: always()
+        shell: bash
+        run: |
+          echo "--- listing working directory ---"
+          pwd
+          ls -la
+          echo "--- listing files in manage directory ---"
+          ls -la ./manage || true
+          echo "--- listing Fiji.app dir (if present) ---"
+          ls -la Fiji.app-${{ env.PLATFORM }} || true
+          echo "--- disk usage ---"
+          df -h || true
+          echo "--- size of extracted tree (summary) ---"
+          du -sh Fiji.app-${{ env.PLATFORM }} || true
+          echo "--- active processes (top 20) ---"
+          ps aux | head -n 20 || true
+          echo "--- done debug step ---"
+
       - name: 🛠️ Add required update sites
         shell: bash
         run: |
