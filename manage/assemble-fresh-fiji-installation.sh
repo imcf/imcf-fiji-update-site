@@ -90,7 +90,7 @@ fi
 echo ">>> adding required update sites..."
 # SCRIPT_DIR="$(dirname "$0")"
 set -x
-$FIJI_CMD --ij2 --headless --console \
+$FIJI_CMD \
     --run "add-update-sites.py" \
     sites_collection=\'"$UPD_SITES"\'
 set +x
