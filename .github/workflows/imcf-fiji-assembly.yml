@@ -27,11 +27,22 @@ jobs:
           fi
           echo "Platform set to $PLATFORM"
 
+      - name: 🖼️ Install X11 libraries (Linux only)
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y xvfb libxrender1 libxtst6 libxi6
+
       - name: 🏃‍♂️ Run the assembly script
         shell: bash
         run: |
           # Run with bash explicitly so this works on both Ubuntu and Windows (Git Bash is available on windows-latest)
-          bash manage/assemble-fresh-fiji-installation.sh manage/update-sites-all.json $PLATFORM
+          if [ "${{ matrix.os }}" == "ubuntu-latest" ]; then
+            # Use xvfb-run to provide virtual X11 display on Linux
+            xvfb-run -a bash manage/assemble-fresh-fiji-installation.sh manage/update-sites-all.json $PLATFORM
+          else
+            bash manage/assemble-fresh-fiji-installation.sh manage/update-sites-all.json $PLATFORM
+          fi
 
       - name: 📦 Zip Fiji folder (per-platform)
         shell: bash
