@@ -89,14 +89,34 @@ fi
 
 echo ">>> adding required update sites..."
 # SCRIPT_DIR="$(dirname "$0")"
+# Ensure we log command output
 set -x
-$FIJI_CMD --ij2 --headless --console \
-    --run "add-update-sites.py" \
+# enable headless Java and detect Xvfb for non-GUI execution environments
+export JAVA_TOOL_OPTIONS="-Djava.awt.headless=true ${JAVA_TOOL_OPTIONS:-}"
+
+# Prefer wrapping Fiji calls with xvfb-run when available (provides a virtual
+# X11 display). On systems without xvfb-run we'll still pass --headless.
+RUN_CMD_PREFIX=""
+if command -v xvfb-run >/dev/null 2>&1; then
+    RUN_CMD_PREFIX="xvfb-run -a"
+fi
+
+run_fiji() {
+    # Accepts args for Fiji, e.g., --headless --run ...
+    if [ -n "${RUN_CMD_PREFIX}" ]; then
+        ${RUN_CMD_PREFIX} "${FIJI_CMD}" "$@"
+    else
+        "${FIJI_CMD}" "$@"
+    fi
+}
+
+run_fiji \
+    --headless --console --run "add-update-sites.py" \
     sites_collection=\'"$UPD_SITES"\'
 set +x
 echo
 echo ">>> running updater..."
-$FIJI_CMD --update update
+run_fiji --headless --console --update update
 # Maybe got improved and not needed to be ran twice now ?
 # $FIJI_CMD --update update
 # $FIJI_CMD --headless

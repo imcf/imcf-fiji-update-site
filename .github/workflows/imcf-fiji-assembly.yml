@@ -31,15 +31,16 @@ jobs:
         if: matrix.os == 'ubuntu-latest'
         run: |
           sudo apt-get update
-          sudo apt-get install -y xvfb libxrender1 libxtst6 libxi6
+          # Install xvfb and the X11 libs ImageJ/Fiji needs
+          sudo apt-get install -y xvfb libx11-6 libxext6 libxrender1 libxtst6 libxi6
 
       - name: 🏃‍♂️ Run the assembly script
         shell: bash
         run: |
           # Run with bash explicitly so this works on both Ubuntu and Windows (Git Bash is available on windows-latest)
           if [ "${{ matrix.os }}" == "ubuntu-latest" ]; then
-            # Use xvfb-run to provide virtual X11 display on Linux
-            xvfb-run -a bash manage/assemble-fresh-fiji-installation.sh manage/update-sites-all.json $PLATFORM
+            # Let the script detect and use xvfb-run / headless mode when needed
+            bash manage/assemble-fresh-fiji-installation.sh manage/update-sites-all.json $PLATFORM
           else
             bash manage/assemble-fresh-fiji-installation.sh manage/update-sites-all.json $PLATFORM
           fi
@@ -62,7 +63,15 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: fiji-${{ matrix.os }}
-          path: fiji-${{ matrix.os }}.zipash
+          path: fiji-${{ matrix.os }}.zip
+
+      - name: ℹ️ Debug Xvfb and DISPLAY (Linux only)
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          echo "xvfb-run available: $(command -v xvfb-run || echo 'no')"
+          echo "Xvfb version:"
+          Xvfb -version || true
+          echo "DISPLAY env: $DISPLAY"
 
   release:
     needs: assemble-fiji
