@@ -38,7 +38,7 @@ if [ "$(uname)" == "Linux" ]; then
     PLATFORM="linux"
     PLATFORM_NUMBERED="linux64"
 else
-    PLATFORM="win"
+    PLATFORM="windows"
     PLATFORM_NUMBERED="win64"
 fi
 
