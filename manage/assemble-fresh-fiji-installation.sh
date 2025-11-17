@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 # reset the bash elapsed-seconds counter:
 SECONDS=0
 
@@ -30,23 +31,26 @@ if [ -d "$FIJI_DIR" ]; then
     # exit 1
 fi
 
-# # we only support Linux and Windows, and only 64 bit:
-# if [ "$(uname)" == "Linux" ]; then
-#     PLATFORM="linux64"
-# else
-#     PLATFORM="win64"
-# fi
-# echo "Detected platform: $PLATFORM"
+echo "$(uname)"
+
+# we only support Linux and Windows, and only 64 bit:
+if [ "$(uname)" == "Linux" ]; then
+    PLATFORM="linux"
+    PLATFORM_NUMBERED="linux64"
+else
+    PLATFORM="win"
+    PLATFORM_NUMBERED="win64"
+fi
 
 echo ">>> Working for platform: $PLATFORM"
 DL_BASE="https://downloads.imagej.net/fiji/latest"
-PKG="fiji-${PLATFORM}.zip"
+PKG="fiji-latest-${PLATFORM_NUMBERED}-jdk.zip"
 FIJI_DIR="Fiji.app-${PLATFORM}"
-NOW=$(date +%Y-%m-%d)
-ZIP_PATH=$FIJI_DIR'_'$NOW'.zip'
+
 DL_URI="$DL_BASE/$PKG"
-FIJI_CMD="./${FIJI_DIR}/ImageJ-${PLATFORM}"
-if [ "$PLATFORM" == "win64" ]; then
+
+FIJI_CMD="./${FIJI_DIR}/fiji-${PLATFORM}-x64"
+if [ "$PLATFORM" == "win" ]; then
     FIJI_CMD="$FIJI_CMD.exe"
 fi
 # if [ "$PLATFORM" == "macosx" ]; then
@@ -65,15 +69,19 @@ fi
 echo
 
 echo -n "Extracting the package: "
-unzip -Xq "$PKG"
-mv "Fiji.app" $FIJI_DIR
+# Do not attempt to restore UID/GID (-X) or timestamps (-DD) when extracting,
+# because setting ownership/timestamps can fail for non-root users and
+# produces warnings like "cannot set UID ... Operation not permitted".
+unzip -q -DD "$PKG"
+mv "Fiji" "$FIJI_DIR"
 echo -e "[DONE]\n"
 
 #### sample images:
 PKG_SAMPLES="imagej-sample-images.zip"
 if [ -r "$PKG_SAMPLES" ]; then
     echo -n "Extracting sample images: "
-    unzip -q "$PKG_SAMPLES" -d $FIJI_DIR
+    # Avoid restoring timestamps for the sample images as well.
+    unzip -q -DD "$PKG_SAMPLES" -d "$FIJI_DIR"
     echo -e "[DONE]\n"
 else
     echo -e "Couldn't find [$PKG_SAMPLES], not extracting sample images!\n"
@@ -88,9 +96,10 @@ $FIJI_CMD --ij2 --headless --console \
 set +x
 echo
 echo ">>> running updater..."
-$FIJI_CMD --console --update update
-$FIJI_CMD --console --update update
-$FIJI_CMD --headless
+$FIJI_CMD --update update
+# Maybe got improved and not needed to be ran twice now ?
+# $FIJI_CMD --update update
+# $FIJI_CMD --headless
 
 
 echo
