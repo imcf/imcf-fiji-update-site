@@ -16,6 +16,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: 🖥️ Set platform variable
+        shell: bash
         run: |
           if [ "${{ matrix.os }}" == "windows-latest" ]; then
             echo "PLATFORM=win64" >> $GITHUB_ENV
@@ -26,73 +27,31 @@ jobs:
           fi
           echo "Platform set to $PLATFORM"
 
-      - name: 📦 Download Fiji package
-        run: |
-          curl https://downloads.imagej.net/fiji/latest/fiji-latest-${{ env.PLATFORM }}-jdk.zip -o ./fiji-${{ env.PLATFORM }}.zip
-
-      - name: 📂 Extract Fiji package
+      - name: 🏃‍♂️ Run the assembly script
         shell: bash
         run: |
-          unzip -qq fiji-${{ env.PLATFORM }}.zip
-          echo "✅ Extracted to Fiji.app-${{ env.PLATFORM }}"
+          # Run with bash explicitly so this works on both Ubuntu and Windows (Git Bash is available on windows-latest)
+          bash manage/assemble-fresh-fiji-installation.sh manage/update-sites-all.json $PLATFORM
 
-      - name: 🚚 Rename extracted Fiji.app to platform directory
-        run: |
-          mv Fiji Fiji.app-${{ env.PLATFORM }}
-          echo "✅ Extracted to Fiji.app-${{ env.PLATFORM }}"
-
-      - name: 🛠️ Set Fiji command path
+      - name: 📦 Zip Fiji folder (per-platform)
         shell: bash
         run: |
-          FIJI_DIR="Fiji.app-${{ env.PLATFORM }}"
-          FIJI_CMD="./${FIJI_DIR}/fiji-${{ env.FIJI_SUFFIX }}"
-          if [ "${{ env.PLATFORM }}" = "win64" ]; then
-            FIJI_CMD="$FIJI_CMD.exe"
+          set -euo pipefail
+          # prefer the platform-specific directory created by the script
+          DIR="Fiji.app-$PLATFORM"
+          if [ ! -d "$DIR" ]; then
+            # fall back to generic Fiji.app
+            DIR="Fiji.app"
           fi
-          echo "FIJI_CMD=$FIJI_CMD" >> $GITHUB_ENV
-          echo "Fiji command set to $FIJI_CMD"
+          ZIP_NAME="fiji-${{ matrix.os }}.zip"
+          echo "Zipping $DIR -> $ZIP_NAME"
+          zip -r "$ZIP_NAME" "$DIR"
 
-      - name: 🔎 Debug by lising files (temporary)
-        if: always()
-        shell: bash
-        run: |
-          echo "--- listing working directory ---"
-          pwd
-          ls -la
-          echo "--- listing files in manage directory ---"
-          ls -la ./manage || true
-          echo "--- listing Fiji.app dir (if present) ---"
-          ls -la Fiji.app-${{ env.PLATFORM }} || true
-          echo "--- disk usage ---"
-          df -h || true
-          echo "--- size of extracted tree (summary) ---"
-          du -sh Fiji.app-${{ env.PLATFORM }} || true
-          echo "--- active processes (top 20) ---"
-          ps aux | head -n 20 || true
-          echo "--- done debug step ---"
-
-      - name: 🛠️ Add required update sites
-        shell: bash
-        run: |
-          echo "Adding update sites using $FIJI_CMD"
-          set -x
-          $FIJI_CMD --ij2 --headless --console --run "./manage/add-update-sites.py" sites_collection='./manage/update-sites-all.json'
-          set +x
-
-      - name: 🔄 Run Fiji updater
-        shell: bash
-        run: |
-          echo "Running Fiji updater..."
-          $FIJI_CMD --console --update update
-          $FIJI_CMD --console --update update
-          $FIJI_CMD --headless
-          echo "✅ Fiji updater finished"
-
-      - name: 📦 Upload Fiji artifact
+      - name: 📤 Upload zipped Fiji artifact
         uses: actions/upload-artifact@v4
         with:
           name: fiji-${{ matrix.os }}
-          path: Fiji.app-${{ env.PLATFORM }}
+          path: fiji-${{ matrix.os }}.zipash
 
   release:
     needs: assemble-fiji
@@ -103,14 +62,25 @@ jobs:
         with:
           name: fiji-ubuntu-latest
           path: ./artifacts/linux
+
       - name: 📥 Download Windows artifact
         uses: actions/download-artifact@v4
         with:
           name: fiji-windows-latest
           path: ./artifacts/windows
+
+      - name: 🔎 List downloaded artifacts
+        run: |
+          echo "Artifacts dir:"
+          ls -la ./artifacts || true
+          echo "Linux content:"
+          ls -la ./artifacts/linux || true
+          echo "Windows content:"
+          ls -la ./artifacts/windows || true
+
       - name: 🚀 Create Release and Upload Artifacts
         uses: softprops/action-gh-release@v1
         with:
           files: |
-            ./artifacts/linux/*
-            ./artifacts/windows/*
+            ./artifacts/linux/*.zip
+            ./artifacts/windows/*.zip
