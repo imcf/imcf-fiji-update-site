@@ -72,6 +72,7 @@ echo -n "Extracting the package: "
 # Do not attempt to restore UID/GID (-X) or timestamps (-DD) when extracting,
 # because setting ownership/timestamps can fail for non-root users and
 # produces warnings like "cannot set UID ... Operation not permitted".
+# test
 unzip -q -DD "$PKG"
 mv "Fiji" "$FIJI_DIR"
 echo -e "[DONE]\n"
