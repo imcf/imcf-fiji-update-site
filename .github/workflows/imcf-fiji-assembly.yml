@@ -20,10 +20,10 @@ jobs:
         run: |
           if [ "${{ matrix.os }}" == "windows-latest" ]; then
             echo "PLATFORM=win64" >> $GITHUB_ENV
-            echo "FIJI_SUFFIX=windows-x64" >> $GITHUB_ENV
+            echo "FIJI_DIR=Fiji.app-windows" >> $GITHUB_ENV
           else
             echo "PLATFORM=linux64" >> $GITHUB_ENV
-            echo "FIJI_SUFFIX=linux-x64" >> $GITHUB_ENV
+            echo "FIJI_DIR=Fiji.app-linux" >> $GITHUB_ENV
           fi
           echo "Platform set to $PLATFORM"
 
@@ -59,11 +59,11 @@ jobs:
       #     echo "Zipping $DIR -> $ZIP_NAME"
       #     zip -r "$ZIP_NAME" "$DIR"
 
-      - name: 📤 Upload zipped Fiji artifact
+      - name: 📤 Upload Fiji artifact
         uses: actions/upload-artifact@v4
         with:
           name: fiji-${{ matrix.os }}
-          path: fiji-${{ matrix.os }}
+          path: ${{ env.FIJI_DIR }}
 
       - name: ℹ️ Debug Xvfb and DISPLAY (Linux only)
         if: matrix.os == 'ubuntu-latest'
@@ -81,26 +81,30 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: fiji-ubuntu-latest
-          path: ./artifacts/linux
+          path: ./artifacts/Fiji.app-linux
 
       - name: 📥 Download Windows artifact
         uses: actions/download-artifact@v4
         with:
           name: fiji-windows-latest
-          path: ./artifacts/windows
+          path: ./artifacts/Fiji.app-windows
+
+      - name: 📦 Create zip files
+        run: |
+          CURRENT_DATE=$(date +%Y-%m-%d)
+          cd artifacts
+          zip -r "Fiji.app-linux-${CURRENT_DATE}.zip" Fiji.app-linux
+          zip -r "Fiji.app-windows-${CURRENT_DATE}.zip" Fiji.app-windows
+          cd ..
 
       - name: 🔎 List downloaded artifacts
         run: |
           echo "Artifacts dir:"
-          ls -la ./artifacts || true
-          echo "Linux content:"
-          ls -la ./artifacts/linux || true
-          echo "Windows content:"
-          ls -la ./artifacts/windows || true
+          ls -lh ./artifacts || true
 
       - name: 🚀 Create Release and Upload Artifacts
         uses: softprops/action-gh-release@v1
         with:
           files: |
-            ./artifacts/linux/*.zip
-            ./artifacts/windows/*.zip
+            ./artifacts/Fiji.app-linux-*.zip
+            ./artifacts/Fiji.app-windows-*.zip
