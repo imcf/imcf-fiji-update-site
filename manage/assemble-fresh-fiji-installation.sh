@@ -89,7 +89,6 @@ else
 fi
 
 echo ">>> adding required update sites..."
-# SCRIPT_DIR="$(dirname "$0")"
 # Ensure we log command output
 set -x
 # enable headless Java and detect Xvfb for non-GUI execution environments
@@ -118,10 +117,6 @@ set +x
 echo
 echo ">>> running updater..."
 run_fiji --headless --update update
-# Maybe got improved and not needed to be ran twice now ?
-# $FIJI_CMD --update update
-# $FIJI_CMD --headless
-
 
 echo
 echo "DONE! Took $SECONDS seconds."
