@@ -47,20 +47,6 @@ jobs:
             bash manage/assemble-fresh-fiji-installation.sh manage/update-sites-all.json $PLATFORM
           fi
 
-      # - name: 📦 Zip Fiji folder (per-platform)
-      #   shell: bash
-      #   run: |
-      #     set -euo pipefail
-      #     # prefer the platform-specific directory created by the script
-      #     DIR="Fiji.app-$PLATFORM"
-      #     if [ ! -d "$DIR" ]; then
-      #       # fall back to generic Fiji.app
-      #       DIR="Fiji.app"
-      #     fi
-      #     ZIP_NAME="fiji-${{ matrix.os }}.zip"
-      #     echo "Zipping $DIR -> $ZIP_NAME"
-      #     zip -r "$ZIP_NAME" "$DIR"
-
       - name: 📤 Upload Fiji artifact
         uses: actions/upload-artifact@v4
         with:
