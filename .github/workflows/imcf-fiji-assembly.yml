@@ -104,6 +104,9 @@ jobs:
         with:
           tag_name: ${{ steps.prepare_release.outputs.RELEASE_TAG }}
           name: ${{ steps.prepare_release.outputs.RELEASE_NAME }}
+          generate_release_notes: true
+          draft: false
+          prerelease: false
           files: |
             ./artifacts/Fiji.app-linux-*.zip
             ./artifacts/Fiji.app-windows-*.zip
