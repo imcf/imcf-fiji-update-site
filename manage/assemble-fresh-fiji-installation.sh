@@ -116,7 +116,7 @@ run_fiji \
 set +x
 echo
 echo ">>> running updater..."
-run_fiji --headless --console --update update
+run_fiji --update update
 # Maybe got improved and not needed to be ran twice now ?
 # $FIJI_CMD --update update
 # $FIJI_CMD --headless
