@@ -21,9 +21,11 @@ jobs:
           if [ "${{ matrix.os }}" == "windows-latest" ]; then
             echo "PLATFORM=win64" >> $GITHUB_ENV
             echo "FIJI_DIR=Fiji.app-windows" >> $GITHUB_ENV
+            echo "PLATFORM_NAME=windows" >> $GITHUB_ENV
           else
             echo "PLATFORM=linux64" >> $GITHUB_ENV
             echo "FIJI_DIR=Fiji.app-linux" >> $GITHUB_ENV
+            echo "PLATFORM_NAME=linux" >> $GITHUB_ENV
           fi
           echo "Platform set to $PLATFORM"
 
@@ -62,16 +64,8 @@ jobs:
       - name: 📤 Upload Fiji artifact
         uses: actions/upload-artifact@v4
         with:
-          name: fiji-${{ matrix.os }}
+          name: Fiji.app-${{ env.PLATFORM_NAME }}
           path: ${{ env.FIJI_DIR }}
-
-      - name: ℹ️ Debug Xvfb and DISPLAY (Linux only)
-        if: matrix.os == 'ubuntu-latest'
-        run: |
-          echo "xvfb-run available: $(command -v xvfb-run || echo 'no')"
-          echo "Xvfb version:"
-          Xvfb -version || true
-          echo "DISPLAY env: $DISPLAY"
 
   release:
     needs: assemble-fiji
@@ -80,18 +74,21 @@ jobs:
       - name: 📥 Download Linux artifact
         uses: actions/download-artifact@v4
         with:
-          name: fiji-ubuntu-latest
+          name: Fiji.app-linux
           path: ./artifacts/Fiji.app-linux
 
       - name: 📥 Download Windows artifact
         uses: actions/download-artifact@v4
         with:
-          name: fiji-windows-latest
+          name: Fiji.app-windows
           path: ./artifacts/Fiji.app-windows
 
-      - name: 📦 Create zip files
+      - name: 📦 Create zip files and set release tag
+        id: prepare_release
         run: |
           CURRENT_DATE=$(date +%Y-%m-%d)
+          echo "RELEASE_TAG=v${CURRENT_DATE}" >> $GITHUB_OUTPUT
+          echo "RELEASE_NAME=Fiji Assembly ${CURRENT_DATE}" >> $GITHUB_OUTPUT
           cd artifacts
           zip -r "Fiji.app-linux-${CURRENT_DATE}.zip" Fiji.app-linux
           zip -r "Fiji.app-windows-${CURRENT_DATE}.zip" Fiji.app-windows
@@ -105,6 +102,8 @@ jobs:
       - name: 🚀 Create Release and Upload Artifacts
         uses: softprops/action-gh-release@v1
         with:
+          tag_name: ${{ steps.prepare_release.outputs.RELEASE_TAG }}
+          name: ${{ steps.prepare_release.outputs.RELEASE_NAME }}
           files: |
             ./artifacts/Fiji.app-linux-*.zip
             ./artifacts/Fiji.app-windows-*.zip
