@@ -93,7 +93,7 @@ jobs:
         run: |
           CURRENT_DATE=$(date +%Y-%m-%d)
           echo "RELEASE_TAG=v${CURRENT_DATE}" >> $GITHUB_OUTPUT
-          echo "RELEASE_NAME=Fiji Assembly ${CURRENT_DATE}" >> $GITHUB_OUTPUT
+          echo "RELEASE_NAME=Fiji-IMCF ${CURRENT_DATE}" >> $GITHUB_OUTPUT
           cd artifacts
           zip -r "Fiji.app-linux-${CURRENT_DATE}.zip" Fiji.app-linux
           zip -r "Fiji.app-windows-${CURRENT_DATE}.zip" Fiji.app-windows
