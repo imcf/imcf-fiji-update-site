@@ -2,7 +2,7 @@ name: IMCF Fiji Assembly 🏗️
 
 on:
   push:
-    branches: [main]
+    branches: [main, ga_assembly]
   workflow_dispatch:
 
 jobs:
