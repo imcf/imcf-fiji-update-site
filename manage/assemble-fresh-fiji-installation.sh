@@ -6,6 +6,7 @@ set -e # stop on errors
 
 # Print the current working directory for debugging/traceability
 echo "Current directory: $(pwd)"
+echo "$(ls)"
 
 exit_usage() {
     echo "Usage:"
