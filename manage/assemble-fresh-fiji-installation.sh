@@ -111,8 +111,8 @@ run_fiji() {
 }
 
 run_fiji \
-    --headless --console --run "add-update-sites.py" \
-    sites_collection=\'"$UPD_SITES"\'
+    --headless --run "add-update-sites.py" \
+    "sites_collection='$UPD_SITES'"
 set +x
 echo
 echo ">>> running updater..."
