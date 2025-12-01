@@ -4,6 +4,9 @@ SECONDS=0
 
 set -e # stop on errors
 
+# Print the current working directory for debugging/traceability
+echo "Current directory: $(pwd)"
+
 exit_usage() {
     echo "Usage:"
     echo
@@ -87,6 +90,8 @@ if [ -r "$PKG_SAMPLES" ]; then
 else
     echo -e "Couldn't find [$PKG_SAMPLES], not extracting sample images!\n"
 fi
+
+echo
 
 echo ">>> adding required update sites..."
 # Ensure we log command output

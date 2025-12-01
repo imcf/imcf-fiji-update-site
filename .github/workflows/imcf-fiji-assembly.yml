@@ -39,13 +39,7 @@ jobs:
       - name: 🏃‍♂️ Run the assembly script
         shell: bash
         run: |
-          # Run with bash explicitly so this works on both Ubuntu and Windows (Git Bash is available on windows-latest)
-          if [ "${{ matrix.os }}" == "ubuntu-latest" ]; then
-            # Let the script detect and use xvfb-run / headless mode when needed
-            bash manage/assemble-fresh-fiji-installation.sh manage/update-sites-all.json $PLATFORM
-          else
-            bash manage/assemble-fresh-fiji-installation.sh manage/update-sites-all.json $PLATFORM
-          fi
+          bash manage/assemble-fresh-fiji-installation.sh manage/update-sites-all.json $PLATFORM
 
       - name: 📤 Upload Fiji artifact
         uses: actions/upload-artifact@v4
