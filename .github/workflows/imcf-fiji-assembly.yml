@@ -46,7 +46,7 @@ jobs:
       - name: 🏃‍♂️ Run the assembly script
         shell: bash
         run: |
-          bash manage/assemble-fresh-fiji-installation.sh "$GITHUB_WORKSPACE/manage/update-sites-all.json" $PLATFORM
+          bash manage/assemble-fresh-fiji-installation.sh ./update-sites-all.json $PLATFORM
 
       - name: 📤 Upload Fiji artifact
         uses: actions/upload-artifact@v4
