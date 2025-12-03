@@ -116,9 +116,30 @@ export JAVA_TOOL_OPTIONS="-Djava.awt.headless=true ${JAVA_TOOL_OPTIONS:-}"
 #     fi
 # }
 
+FIJI_CMD_PREPARED_UPD_SITES="$UPD_SITES"
+
+# Resolve UPD_SITES to an absolute path if it's not already absolute, prefer realpath
+if [ "${FIJI_CMD_PREPARED_UPD_SITES:0:1}" != "/" ]; then
+    if command -v realpath >/dev/null 2>&1; then
+        FIJI_CMD_PREPARED_UPD_SITES=$(realpath -- "$FIJI_CMD_PREPARED_UPD_SITES" 2>/dev/null || printf "%s/%s" "$PWD" "$FIJI_CMD_PREPARED_UPD_SITES")
+    else
+        FIJI_CMD_PREPARED_UPD_SITES="$PWD/$FIJI_CMD_PREPARED_UPD_SITES"
+    fi
+fi
+
+# Debug: show where we will look for the JSON
+echo "Using update-sites file: $FIJI_CMD_PREPARED_UPD_SITES"
+echo "Caller working dir: $(pwd)"
+ls -la || true
+
+if ! [ -r "$FIJI_CMD_PREPARED_UPD_SITES" ]; then
+    echo "ERROR: update-sites file not found or not readable: $FIJI_CMD_PREPARED_UPD_SITES"
+    exit 2
+fi
+
 $FIJI_CMD \
     --headless --run "add-update-sites.py" \
-    "sites_collection='$UPD_SITES'"
+    "sites_collection='$FIJI_CMD_PREPARED_UPD_SITES'"
 set +x
 echo
 echo ">>> running updater..."
