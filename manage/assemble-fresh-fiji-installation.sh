@@ -102,7 +102,7 @@ export JAVA_TOOL_OPTIONS="-Djava.awt.headless=true ${JAVA_TOOL_OPTIONS:-}"
 
 $FIJI_CMD \
     --headless --run manage/add-update-sites.py \
-    "sites_collection='manage/$UPD_SITES'"
+    "sites_collection='$UPD_SITES'"
 set +x
 echo
 echo ">>> running updater..."
