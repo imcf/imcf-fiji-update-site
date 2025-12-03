@@ -93,6 +93,63 @@ else
 fi
 
 echo
+echo
+
+# Try to fetch the latest OMERO_ij jar from GitHub releases (pure Bash)
+OMERO_OWNER="ome"
+OMERO_REPO="omero-insight"
+MATCH_RE='^OMERO_ij-.*\.jar$'
+
+if command -v curl >/dev/null 2>&1; then
+    echo "Looking up latest OMERO_ij release for ${OMERO_OWNER}/${OMERO_REPO}..."
+
+    find_asset_url() {
+        # $1: raw JSON
+        local json="$1"
+        local line name url
+        # extract only name and browser_download_url tokens in order
+        echo "$json" | grep -oE '"name"\s*:\s*"[^"]+"|"browser_download_url"\s*:\s*"[^"]+"' | \
+        while read -r line; do
+            if [[ $line =~ "name"[[:space:]]*:[[:space:]]*"([^"]+)" ]]; then
+                name="${BASH_REMATCH[1]}"
+            elif [[ $line =~ "browser_download_url"[[:space:]]*:[[:space:]]*"([^"]+)" ]]; then
+                url="${BASH_REMATCH[1]}"
+                if [[ $name =~ $MATCH_RE ]]; then
+                    printf '%s' "$url"
+                    return 0
+                fi
+            fi
+        done
+        return 1
+    }
+
+    asset_url=""
+    json=$(curl -s "https://api.github.com/repos/${OMERO_OWNER}/${OMERO_REPO}/releases/latest")
+    asset_url=$(find_asset_url "$json" || true)
+
+    if [ -z "$asset_url" ]; then
+        # fallback: scan recent releases
+        json=$(curl -s "https://api.github.com/repos/${OMERO_OWNER}/${OMERO_REPO}/releases")
+        asset_url=$(find_asset_url "$json" || true)
+    fi
+
+    if [ -n "$asset_url" ]; then
+        echo "Found OMERO asset: $asset_url"
+        asset_name=$(basename "$asset_url")
+        target_dir="$FIJI_DIR/plugins"
+        mkdir -p "$target_dir"
+        echo "Downloading $asset_name to $target_dir/"
+        if curl -L --fail -sS "$asset_url" -o "$target_dir/$asset_name"; then
+            chmod 644 "$target_dir/$asset_name" || true
+        else
+            echo "Warning: failed to download $asset_url"
+        fi
+    else
+        echo "No OMERO_ij jar found in releases."
+    fi
+else
+    echo "Skipping OMERO_ij download: 'curl' not available."
+fi
 
 echo ">>> adding required update sites..."
 # Ensure we log command output
