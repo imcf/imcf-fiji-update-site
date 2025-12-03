@@ -98,7 +98,7 @@ echo
 # Try to fetch the latest OMERO_ij jar from GitHub releases (pure Bash)
 OMERO_OWNER="ome"
 OMERO_REPO="omero-insight"
-MATCH_RE='^OMERO_ij-.*\.jar$'
+MATCH_RE='^omero_ij-.*\.jar$'
 
 if command -v curl >/dev/null 2>&1; then
     echo "Looking up latest OMERO_ij release for ${OMERO_OWNER}/${OMERO_REPO}..."
@@ -112,9 +112,11 @@ if command -v curl >/dev/null 2>&1; then
         while read -r line; do
             if [[ $line =~ \"name\"[[:space:]]*:[[:space:]]*\"([^\"]+)\" ]]; then
                 name="${BASH_REMATCH[1]}"
+                # normalize to lowercase for case-insensitive matching
+                name_lc=$(printf '%s' "$name" | tr '[:upper:]' '[:lower:]')
             elif [[ $line =~ \"browser_download_url\"[[:space:]]*:[[:space:]]*\"([^\"]+)\" ]]; then
                 url="${BASH_REMATCH[1]}"
-                if [[ $name =~ $MATCH_RE ]]; then
+                if [[ $name_lc =~ $MATCH_RE ]]; then
                     printf '%s' "$url"
                     return 0
                 fi
