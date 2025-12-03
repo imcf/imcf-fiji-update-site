@@ -110,9 +110,9 @@ if command -v curl >/dev/null 2>&1; then
         # extract only name and browser_download_url tokens in order
         echo "$json" | grep -oE '"name"\s*:\s*"[^"]+"|"browser_download_url"\s*:\s*"[^"]+"' | \
         while read -r line; do
-            if [[ $line =~ "name"[[:space:]]*:[[:space:]]*"([^"]+)" ]]; then
+            if [[ $line =~ \"name\"[[:space:]]*:[[:space:]]*\"([^\"]+)\" ]]; then
                 name="${BASH_REMATCH[1]}"
-            elif [[ $line =~ "browser_download_url"[[:space:]]*:[[:space:]]*"([^"]+)" ]]; then
+            elif [[ $line =~ \"browser_download_url\"[[:space:]]*:[[:space:]]*\"([^\"]+)\" ]]; then
                 url="${BASH_REMATCH[1]}"
                 if [[ $name =~ $MATCH_RE ]]; then
                     printf '%s' "$url"
