@@ -137,7 +137,7 @@ if ! [ -r "$FIJI_CMD_PREPARED_UPD_SITES" ]; then
     exit 2
 fi
 
-$FIJI_RUN_SCRIPT="$SCRIPT_DIR/add-update-sites.py"
+FIJI_RUN_SCRIPT="$SCRIPT_DIR/add-update-sites.py"
 
 # Call Fiji with the absolute path to the script and a properly quoted
 # sites_collection argument so ImageJ receives: "sites_collection='/abs/path'"
