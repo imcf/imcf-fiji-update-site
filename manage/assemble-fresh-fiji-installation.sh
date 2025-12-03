@@ -26,7 +26,7 @@ if [ $# -lt 2 ]; then
     exit_usage
 fi
 
-UPD_SITES="$1"
+UPD_SITES=$1
 PLATFORM="$2"
 
 FIJI_DIR="Fiji.app"
@@ -100,50 +100,9 @@ set -x
 # enable headless Java and detect Xvfb for non-GUI execution environments
 export JAVA_TOOL_OPTIONS="-Djava.awt.headless=true ${JAVA_TOOL_OPTIONS:-}"
 
-# Prefer wrapping Fiji calls with xvfb-run when available (provides a virtual
-# X11 display). On systems without xvfb-run we'll still pass --headless.
-# RUN_CMD_PREFIX=""
-# if command -v xvfb-run >/dev/null 2>&1; then
-#     RUN_CMD_PREFIX="xvfb-run -a"
-# fi
-
-# run_fiji() {
-#     # Accepts args for Fiji, e.g., --headless --run ...
-#     if [ -n "${RUN_CMD_PREFIX}" ]; then
-#         ${RUN_CMD_PREFIX} "${FIJI_CMD}" "$@"
-#     else
-#         "${FIJI_CMD}" "$@"
-#     fi
-# }
-
-FIJI_CMD_PREPARED_UPD_SITES="$UPD_SITES"
-
-# Resolve UPD_SITES to an absolute path if it's not already absolute, prefer realpath
-if [ "${FIJI_CMD_PREPARED_UPD_SITES:0:1}" != "/" ]; then
-    if command -v realpath >/dev/null 2>&1; then
-        FIJI_CMD_PREPARED_UPD_SITES=$(realpath -- "$FIJI_CMD_PREPARED_UPD_SITES" 2>/dev/null || printf "%s/%s" "$PWD" "$FIJI_CMD_PREPARED_UPD_SITES")
-    else
-        FIJI_CMD_PREPARED_UPD_SITES="$PWD/$FIJI_CMD_PREPARED_UPD_SITES"
-    fi
-fi
-
-# Debug: show where we will look for the JSON
-echo "Using update-sites file: $FIJI_CMD_PREPARED_UPD_SITES"
-echo "Caller working dir: $(pwd)"
-ls -la || true
-
-if ! [ -r "$FIJI_CMD_PREPARED_UPD_SITES" ]; then
-    echo "ERROR: update-sites file not found or not readable: $FIJI_CMD_PREPARED_UPD_SITES"
-    exit 2
-fi
-
-FIJI_RUN_SCRIPT="$SCRIPT_DIR/add-update-sites.py"
-
-# Call Fiji with the absolute path to the script and a properly quoted
-# sites_collection argument so ImageJ receives: "sites_collection='/abs/path'"
 $FIJI_CMD \
-    --headless --run "$FIJI_RUN_SCRIPT" \
-    "sites_collection='$FIJI_CMD_PREPARED_UPD_SITES'"
+    --headless --run manage/add-update-sites.py \
+    "sites_collection='manage/$UPD_SITES'"
 set +x
 echo
 echo ">>> running updater..."
