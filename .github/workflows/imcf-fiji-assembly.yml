@@ -78,12 +78,16 @@ jobs:
       - name: 📦 Create zip files and set release tag
         id: prepare_release
         run: |
+          # Use a timestamp (date + time) so multiple releases on the same
+          # day get unique tags and artifact names.
           CURRENT_DATE=$(date +%Y-%m-%d)
-          echo "RELEASE_TAG=v${CURRENT_DATE}" >> $GITHUB_OUTPUT
-          echo "RELEASE_NAME=Fiji-IMCF ${CURRENT_DATE}" >> $GITHUB_OUTPUT
+          CURRENT_TIME=$(date +%H%M%S)
+          TIMESTAMP="${CURRENT_DATE}-${CURRENT_TIME}"
+          echo "RELEASE_TAG=v${TIMESTAMP}" >> $GITHUB_OUTPUT
+          echo "RELEASE_NAME=Fiji-IMCF ${CURRENT_DATE} ${CURRENT_TIME}" >> $GITHUB_OUTPUT
           cd artifacts
-          zip -r "Fiji.app-linux-${CURRENT_DATE}.zip" Fiji.app-linux
-          zip -r "Fiji.app-windows-${CURRENT_DATE}.zip" Fiji.app-windows
+          zip -r "Fiji.app-linux-${TIMESTAMP}.zip" Fiji.app-linux
+          zip -r "Fiji.app-windows-${TIMESTAMP}.zip" Fiji.app-windows
           cd ..
 
       - name: 🔎 List downloaded artifacts
