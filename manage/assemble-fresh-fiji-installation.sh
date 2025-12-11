@@ -165,7 +165,7 @@ $FIJI_CMD \
 set +x
 echo
 echo ">>> running updater..."
-$FIJI_CMD --update update
+$FIJI_CMD --headless --update update
 
 echo
 echo "DONE! Took $SECONDS seconds."
