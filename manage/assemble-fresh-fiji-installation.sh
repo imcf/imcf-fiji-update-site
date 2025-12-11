@@ -49,7 +49,7 @@ fi
 echo ">>> Working for platform: $PLATFORM"
 DL_BASE="https://downloads.imagej.net/fiji/latest"
 PKG="fiji-latest-${PLATFORM_NUMBERED}-jdk.zip"
-FIJI_DIR="Fiji-${PLATFORM}"
+FIJI_DIR="Fiji.app-${PLATFORM}"
 
 DL_URI="$DL_BASE/$PKG"
 
