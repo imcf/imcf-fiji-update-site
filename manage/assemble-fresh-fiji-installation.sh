@@ -47,9 +47,9 @@ else
 fi
 
 echo ">>> Working for platform: $PLATFORM"
-DL_BASE="https://downloads.imagej.net/fiji/stable"
-PKG="fiji-stable-${PLATFORM_NUMBERED}-jdk.zip"
-FIJI_DIR="Fiji.app-${PLATFORM}"
+DL_BASE="https://downloads.imagej.net/fiji/latest"
+PKG="fiji-latest-${PLATFORM_NUMBERED}-jdk.zip"
+FIJI_DIR="Fiji-${PLATFORM}"
 
 DL_URI="$DL_BASE/$PKG"
 
@@ -63,10 +63,10 @@ fi
 
 echo ">>> installing base ImageJ / Fiji package..."
 if ! [ -r "$PKG" ]; then
-    echo "Downloading the latest stable Fiji package: $DL_URI"
+    echo "Downloading the latest Fiji package: $DL_URI"
     echo
     curl -k "$DL_URI" -o $PKG
-    echo "Downloaded the latest stable Fiji package: [$PKG]"
+    echo "Downloaded the latest Fiji package: [$PKG]"
 else
     echo "Using the existing fiji download package: [$PKG]"
 fi
@@ -165,7 +165,7 @@ $FIJI_CMD \
 set +x
 echo
 echo ">>> running updater..."
-$FIJI_CMD --headless --update update
+$FIJI_CMD --update update
 
 echo
 echo "DONE! Took $SECONDS seconds."
