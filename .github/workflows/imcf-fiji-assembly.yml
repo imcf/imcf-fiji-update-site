@@ -75,6 +75,16 @@ jobs:
           name: Fiji.app-windows
           path: ./artifacts/Fiji.app-windows
 
+      - name: 🔧 Ensure downloaded Fiji launchers are executable
+        run: |
+          echo "Setting executable bits for Fiji artifacts"
+          chmod -R +x ./artifacts/Fiji.app-linux || true
+          chmod -R +x ./artifacts/Fiji.app-windows || true
+          # Ensure jaunch helper and primary launchers are executable
+          chmod +x ./artifacts/Fiji.app-linux/fiji-linux-x64 || true
+          chmod +x ./artifacts/Fiji.app-linux/fiji || true
+          chmod +x ./artifacts/Fiji.app-linux/config/jaunch/jaunch-linux-x64 || true
+
       - name: 📦 Create zip files and set release tag
         id: prepare_release
         run: |
