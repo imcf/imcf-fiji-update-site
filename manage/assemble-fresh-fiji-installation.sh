@@ -81,6 +81,61 @@ unzip -q -DD "$PKG"
 mv "Fiji" "$FIJI_DIR"
 echo -e "[DONE]\n"
 
+# Detect and verify the Fiji/ImageJ launcher. Some update sites contain
+# installer or helper binaries (e.g. timestamped ImageJ-* files or jaunch
+# stubs). We must pick the real launcher that accepts `--headless` args.
+run_with_xvfb_fallback() {
+    # Run command, retry under xvfb if it fails and xvfb-run is present.
+    if "$@"; then
+        return 0
+    fi
+    rc=$?
+    echo "Command failed with exit code $rc"
+    if command -v xvfb-run >/dev/null 2>&1; then
+        echo "Retrying under xvfb-run..."
+        xvfb-run -a --auto-servernum --server-args='-screen 0 1024x768x24' "$@"
+        return $?
+    fi
+    return $rc
+}
+
+echo "Detecting Fiji executable in $FIJI_DIR"
+FIJI_CMD=""
+for pattern in ImageJ-* ImageJ fiji-* fiji; do
+    for f in "$FIJI_DIR"/$pattern; do
+        if [ -f "$f" ] && [ -x "$f" ]; then
+            echo "Trying candidate: $f"
+            if run_with_xvfb_fallback "$f" --headless --version >/dev/null 2>&1; then
+                FIJI_CMD="./$f"
+                break 2
+            else
+                echo "Candidate $f rejected (did not respond as launcher)"
+            fi
+        fi
+    done
+done
+
+if [ -z "${FIJI_CMD}" ]; then
+    # Fallback: pick any executable file at top-level and verify it.
+    candidate=$(find "$FIJI_DIR" -maxdepth 1 -type f -perm /111 | head -n 1 || true)
+    if [ -n "${candidate}" ]; then
+        echo "Trying fallback candidate: ${candidate}"
+        if run_with_xvfb_fallback "$candidate" --headless --version >/dev/null 2>&1; then
+            FIJI_CMD="./${candidate}"
+        fi
+    fi
+fi
+
+if [ -z "${FIJI_CMD}" ]; then
+    echo "ERROR: Could not find a valid Fiji/ImageJ launcher in $FIJI_DIR"
+    echo "Top-level listing:"; ls -la "$FIJI_DIR"
+    echo "Executable files (file output):"
+    find "$FIJI_DIR" -maxdepth 2 -type f -perm /111 -exec file {} \; || true
+    exit 2
+fi
+
+echo "Using Fiji command: $FIJI_CMD"
+
 #### sample images:
 PKG_SAMPLES="imagej-sample-images.zip"
 if [ -r "$PKG_SAMPLES" ]; then
