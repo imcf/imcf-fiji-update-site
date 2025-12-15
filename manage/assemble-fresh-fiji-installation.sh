@@ -81,6 +81,12 @@ unzip -q -DD "$PKG"
 mv "Fiji" "$FIJI_DIR"
 echo -e "[DONE]\n"
 
+# Ensure launcher and jaunch helper are executable (some zip extractions
+# may lose the executable bit in CI environments). This avoids the
+# "Failed to execute the jaunch configurator" / out_argc errors.
+chmod +x "$FIJI_DIR"/fiji-* "$FIJI_DIR"/ImageJ-* "$FIJI_DIR"/fiji || true
+chmod +x "$FIJI_DIR"/config/jaunch/jaunch-linux-* || true
+
 # Detect and verify the Fiji/ImageJ launcher. Some update sites contain
 # installer or helper binaries (e.g. timestamped ImageJ-* files or jaunch
 # stubs). We must pick the real launcher that accepts `--headless` args.
