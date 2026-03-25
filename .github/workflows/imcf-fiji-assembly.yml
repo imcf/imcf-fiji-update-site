@@ -1,0 +1,123 @@
+name: IMCF Fiji Assembly 🏗️
+
+on:
+  push:
+    branches: [main, ga_assembly]
+  workflow_dispatch:
+    inputs:
+      reason:
+        description: "Reason for manual run"
+        required: false
+        default: "Manual trigger"
+
+jobs:
+  assemble-fiji:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: 🖥️ Set platform variable
+        id: set_platform
+        shell: bash
+        run: |
+          if [ "${{ matrix.os }}" == "windows-latest" ]; then
+            echo "PLATFORM=win64" >> $GITHUB_ENV
+            echo "FIJI_DIR=Fiji.app-windows" >> $GITHUB_ENV
+            echo "PLATFORM_NAME=windows" >> $GITHUB_ENV
+            echo "PLATFORM=win64" >> $GITHUB_OUTPUT
+            echo "FIJI_DIR=Fiji.app-windows" >> $GITHUB_OUTPUT
+            echo "PLATFORM_NAME=windows" >> $GITHUB_OUTPUT
+          else
+            echo "PLATFORM=linux64" >> $GITHUB_ENV
+            echo "FIJI_DIR=Fiji.app-linux" >> $GITHUB_ENV
+            echo "PLATFORM_NAME=linux" >> $GITHUB_ENV
+            echo "PLATFORM=linux64" >> $GITHUB_OUTPUT
+            echo "FIJI_DIR=Fiji.app-linux" >> $GITHUB_OUTPUT
+            echo "PLATFORM_NAME=linux" >> $GITHUB_OUTPUT
+          fi
+          echo "Platform set to $PLATFORM"
+
+      - name: 🖼️ Install X11 libraries (Linux only)
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo apt-get update
+          # Install xvfb and the X11 libs ImageJ/Fiji needs
+          sudo apt-get install -y xvfb libx11-6 libxext6 libxrender1 libxtst6 libxi6
+
+      - name: 🏃‍♂️ Run the assembly script
+        shell: bash
+        run: |
+          bash manage/assemble-fresh-fiji-installation.sh manage/update-sites-all.json $PLATFORM
+
+      - name: 📤 Upload Fiji artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Fiji.app-${{ steps.set_platform.outputs.PLATFORM_NAME }}
+          path: ${{ steps.set_platform.outputs.FIJI_DIR }}
+
+  release:
+    needs: assemble-fiji
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 📥 Download Linux artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: Fiji.app-linux
+          path: ./artifacts/Fiji.app-linux
+
+      - name: 📥 Download Windows artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: Fiji.app-windows
+          path: ./artifacts/Fiji.app-windows
+
+      - name: 🔧 Ensure downloaded Fiji launchers are executable
+        run: |
+          echo "Setting executable bits for Fiji artifacts"
+          chmod -R +x ./artifacts/Fiji.app-linux || true
+          chmod -R +x ./artifacts/Fiji.app-windows || true
+          # Ensure jaunch helper and primary launchers are executable
+          chmod +x ./artifacts/Fiji.app-linux/fiji-linux-x64 || true
+          chmod +x ./artifacts/Fiji.app-linux/fiji || true
+          chmod +x ./artifacts/Fiji.app-linux/config/jaunch/jaunch-linux-x64 || true
+
+      - name: 📦 Create zip files and set release tag
+        id: prepare_release
+        run: |
+          # Use a timestamp (date + time) so multiple releases on the same
+          # day get unique tags and artifact names.
+          CURRENT_DATE=$(date +%Y-%m-%d)
+          CURRENT_TIME=$(date +%H%M%S)
+          TIMESTAMP="${CURRENT_DATE}-${CURRENT_TIME}"
+          echo "RELEASE_TAG=v${TIMESTAMP}" >> $GITHUB_OUTPUT
+          echo "RELEASE_NAME=Fiji-IMCF ${CURRENT_DATE} ${CURRENT_TIME}" >> $GITHUB_OUTPUT
+          cd artifacts
+          zip -r "Fiji.app-linux-${TIMESTAMP}.zip" Fiji.app-linux
+          zip -r "Fiji.app-windows-${TIMESTAMP}.zip" Fiji.app-windows
+          cd ..
+
+      - name: 🔎 List downloaded artifacts
+        run: |
+          echo "Artifacts dir:"
+          ls -lh ./artifacts || true
+
+      - name: 🚀 Create Release and Upload Artifacts
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ steps.prepare_release.outputs.RELEASE_TAG }}
+          name: ${{ steps.prepare_release.outputs.RELEASE_NAME }}
+          generate_release_notes: true
+          draft: false
+          prerelease: true
+          files: |
+            ./artifacts/Fiji.app-linux-*.zip
+            ./artifacts/Fiji.app-windows-*.zip
