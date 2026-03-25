@@ -1,1 +1,6 @@
-/Fiji.app/
+/manage/Fiji.app-*/
+/manage/fiji-latest-*.zip
+/manage/fiji-*.zip
+/manage/Fiji*
+Fiji.app*
+fiji-latest-*.zip
