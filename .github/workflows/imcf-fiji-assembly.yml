@@ -2,7 +2,7 @@ name: IMCF Fiji Assembly 🏗️
 
 on:
   push:
-    branches: [main, ga_assembly]
+    branches: [main]
   workflow_dispatch:
     inputs:
       reason:
@@ -41,7 +41,14 @@ jobs:
           fi
           echo "Platform set to $PLATFORM"
 
-      - name: 🖼️ Install X11 libraries (Linux only)
+      - name: 💾 Cache Fiji base package
+        id: cache-fiji
+        uses: actions/cache@v4
+        with:
+          path: fiji-latest-*.zip
+          key: fiji-base-${{ steps.set_platform.outputs.PLATFORM }}-${{ hashFiles('manage/assemble-fresh-fiji-installation.sh') }}
+
+      - name: 🛠️ Install X11 libraries (Linux only)
         if: matrix.os == 'ubuntu-latest'
         run: |
           sudo apt-get update

@@ -65,7 +65,7 @@ echo ">>> installing base ImageJ / Fiji package..."
 if ! [ -r "$PKG" ]; then
     echo "Downloading the latest Fiji package: $DL_URI"
     echo
-    curl -k "$DL_URI" -o $PKG
+    curl -z "$PKG" -k -L "$DL_URI" -o "$PKG"
     echo "Downloaded the latest Fiji package: [$PKG]"
 else
     echo "Using the existing fiji download package: [$PKG]"
