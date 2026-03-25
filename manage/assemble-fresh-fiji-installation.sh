@@ -214,6 +214,14 @@ else
     echo "Skipping OMERO_ij download: 'curl' not available."
 fi
 
+echo ">> Downloading Mexican_Hat_Filter.class to $FIJI_DIR/plugins/"
+MEXICAN_HAT_URL="https://imagej.net/ij/plugins/mexican-hat/Mexican_Hat_Filter.class"
+if curl -L --fail -sS "$MEXICAN_HAT_URL" -o "$FIJI_DIR/plugins/Mexican_Hat_Filter.class"; then
+    chmod 644 "$FIJI_DIR/plugins/Mexican_Hat_Filter.class" || true
+else
+    echo "Warning: failed to download Mexican_Hat_Filter.class"
+fi
+
 echo ">>> adding required update sites..."
 # Ensure we log command output
 set -x
