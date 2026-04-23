@@ -11,7 +11,7 @@ echo "$(ls)"
 exit_usage() {
     echo "Usage:"
     echo
-    echo "$0 ./list-of-update-sites.json platform"
+    echo "$0 ./list-of-update-sites.json platform [fiji-channel]"
     echo
     exit 1
 }
@@ -28,6 +28,7 @@ fi
 
 UPD_SITES=$1
 PLATFORM="$2"
+CHANNEL="${3:-fiji-latest}"
 
 FIJI_DIR="Fiji.app"
 if [ -d "$FIJI_DIR" ]; then
@@ -47,8 +48,15 @@ else
 fi
 
 echo ">>> Working for platform: $PLATFORM"
-DL_BASE="https://downloads.imagej.net/fiji/latest"
-PKG="fiji-latest-${PLATFORM_NUMBERED}-jdk.zip"
+if [[ "$CHANNEL" == *stable* ]]; then
+    DL_BASE="https://downloads.imagej.net/fiji/stable"
+elif [[ "$CHANNEL" == *latest* ]]; then
+    DL_BASE="https://downloads.imagej.net/fiji/latest"
+else
+    # default to latest if unknown
+    DL_BASE="https://downloads.imagej.net/fiji/latest"
+fi
+PKG="${CHANNEL}-${PLATFORM_NUMBERED}-jdk.zip"
 FIJI_DIR="Fiji.app-${PLATFORM}"
 
 DL_URI="$DL_BASE/$PKG"

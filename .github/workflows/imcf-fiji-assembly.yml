@@ -2,7 +2,7 @@ name: IMCF Fiji Assembly 🏗️
 
 on:
   push:
-    branches: [main]
+    branches: [ main ]
   workflow_dispatch:
     inputs:
       reason:
@@ -14,7 +14,8 @@ jobs:
   assemble-fiji:
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest]
+        os: [ ubuntu-latest, windows-latest ]
+        channel: [ fiji-latest, fiji-stable ]
     runs-on: ${{ matrix.os }}
     steps:
       - name: 📥 Checkout repository
@@ -45,8 +46,9 @@ jobs:
         id: cache-fiji
         uses: actions/cache@v4
         with:
-          path: fiji-latest-*.zip
-          key: fiji-base-${{ steps.set_platform.outputs.PLATFORM }}-${{ hashFiles('manage/assemble-fresh-fiji-installation.sh') }}
+          path: fiji-*.zip
+          key: fiji-base-${{ matrix.channel }}-${{ steps.set_platform.outputs.PLATFORM
+            }}-${{ hashFiles('manage/assemble-fresh-fiji-installation.sh') }}
 
       - name: 🛠️ Install X11 libraries (Linux only)
         if: matrix.os == 'ubuntu-latest'
@@ -58,12 +60,13 @@ jobs:
       - name: 🏃‍♂️ Run the assembly script
         shell: bash
         run: |
-          bash manage/assemble-fresh-fiji-installation.sh manage/update-sites-all.json $PLATFORM
+          bash manage/assemble-fresh-fiji-installation.sh manage/update-sites-all.json $PLATFORM ${{ matrix.channel }}
 
       - name: 📤 Upload Fiji artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Fiji.app-${{ steps.set_platform.outputs.PLATFORM_NAME }}
+          name: Fiji.app-${{ matrix.channel }}-${{
+            steps.set_platform.outputs.PLATFORM_NAME }}
           path: ${{ steps.set_platform.outputs.FIJI_DIR }}
 
   release:
@@ -75,27 +78,38 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: 📥 Download Linux artifact
+      - name: 📥 Download Fiji artifacts (both channels)
         uses: actions/download-artifact@v4
         with:
-          name: Fiji.app-linux
-          path: ./artifacts/Fiji.app-linux
+          name: Fiji.app-fiji-latest-linux
+          path: ./artifacts/Fiji.app-fiji-latest-linux
 
-      - name: 📥 Download Windows artifact
+      - name: 📥 Download Fiji artifacts (fiji-stable linux)
         uses: actions/download-artifact@v4
         with:
-          name: Fiji.app-windows
-          path: ./artifacts/Fiji.app-windows
+          name: Fiji.app-fiji-stable-linux
+          path: ./artifacts/Fiji.app-fiji-stable-linux
+
+      - name: 📥 Download Fiji artifacts (fiji-latest windows)
+        uses: actions/download-artifact@v4
+        with:
+          name: Fiji.app-fiji-latest-windows
+          path: ./artifacts/Fiji.app-fiji-latest-windows
+
+      - name: 📥 Download Fiji artifacts (fiji-stable windows)
+        uses: actions/download-artifact@v4
+        with:
+          name: Fiji.app-fiji-stable-windows
+          path: ./artifacts/Fiji.app-fiji-stable-windows
 
       - name: 🔧 Ensure downloaded Fiji launchers are executable
         run: |
           echo "Setting executable bits for Fiji artifacts"
-          chmod -R +x ./artifacts/Fiji.app-linux || true
-          chmod -R +x ./artifacts/Fiji.app-windows || true
-          # Ensure jaunch helper and primary launchers are executable
-          chmod +x ./artifacts/Fiji.app-linux/fiji-linux-x64 || true
-          chmod +x ./artifacts/Fiji.app-linux/fiji || true
-          chmod +x ./artifacts/Fiji.app-linux/config/jaunch/jaunch-linux-x64 || true
+          chmod -R +x ./artifacts/Fiji.app-* || true
+          # Ensure jaunch helper and primary launchers are executable where present
+          chmod -R +x ./artifacts/*/fiji-linux-x64 || true
+          chmod -R +x ./artifacts/*/fiji || true
+          chmod -R +x ./artifacts/*/config/jaunch/jaunch-linux-x64 || true
 
       - name: 📦 Create zip files and set release tag
         id: prepare_release
@@ -108,8 +122,11 @@ jobs:
           echo "RELEASE_TAG=v${TIMESTAMP}" >> $GITHUB_OUTPUT
           echo "RELEASE_NAME=Fiji-IMCF ${CURRENT_DATE} ${CURRENT_TIME}" >> $GITHUB_OUTPUT
           cd artifacts
-          zip -r "Fiji.app-linux-${TIMESTAMP}.zip" Fiji.app-linux
-          zip -r "Fiji.app-windows-${TIMESTAMP}.zip" Fiji.app-windows
+          for d in Fiji.app-*; do
+            if [ -d "$d" ]; then
+              zip -r "${d}-${TIMESTAMP}.zip" "$d"
+            fi
+          done
           cd ..
 
       - name: 🔎 List downloaded artifacts
@@ -126,5 +143,4 @@ jobs:
           draft: false
           prerelease: true
           files: |
-            ./artifacts/Fiji.app-linux-*.zip
-            ./artifacts/Fiji.app-windows-*.zip
+            ./artifacts/*.zip
