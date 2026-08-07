@@ -88,7 +88,9 @@ echo -n "Extracting the package: "
 # produces warnings like "cannot set UID ... Operation not permitted".
 # test
 unzip -q -DD "$PKG"
-# Find the extracted Fiji directory (could be 'Fiji' or 'Fiji.app')
+
+
+echo "Identify extracted Fiji directory, could be 'Fiji' or 'Fiji.app'..."
 EXTRACTED=""
 for DIR in Fiji*; do
     if [ -d "$DIR" ]; then
@@ -100,7 +102,7 @@ if [ -z "$EXTRACTED" ]; then
     echo "ERROR: no extracted Fiji directory found after unpacking $PKG"
     exit 2
 fi
-mv -- "$EXTRACTED" "$FIJI_DIR"
+mv -v -- "$EXTRACTED" "$FIJI_DIR"
 echo -e "[DONE]\n"
 
 # Ensure launcher and jaunch helper are executable (some zip extractions
@@ -259,4 +261,4 @@ echo ">>> running updater..."
 $FIJI_CMD --headless --update update
 
 echo
-echo "DONE! Took $SECONDS seconds."
+echo "Assembling new Fiji in [$FIJI_DIR] took $SECONDS seconds. Done."
