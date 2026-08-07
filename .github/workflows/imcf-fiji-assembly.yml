@@ -130,7 +130,7 @@ jobs:
           cd artifacts
           for d in Fiji.app-*; do
             if [ -d "$d" ]; then
-              zip -r "${d}-${TIMESTAMP}.zip" "$d"
+              zip -1 -r "${d}-${TIMESTAMP}.zip" "$d"
             fi
           done
           cd ..
