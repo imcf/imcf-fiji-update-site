@@ -48,7 +48,8 @@ jobs:
         uses: actions/cache@v4
         with:
           path: fiji-*.zip
-          key: fiji-base-${{ matrix.channel }}-${{ steps.set_platform.outputs.PLATFORM
+          key:
+            fiji-base-${{ matrix.channel }}-${{ steps.set_platform.outputs.PLATFORM
             }}-${{ hashFiles('manage/assemble-fresh-fiji-installation.sh') }}
 
       - name: 🛠️ Install X11 libraries (Linux only)
@@ -61,7 +62,10 @@ jobs:
       - name: 🏃‍♂️ Run the assembly script
         shell: bash
         run: |
-          bash manage/assemble-fresh-fiji-installation.sh manage/update-sites-all.json $PLATFORM ${{ matrix.channel }}
+          bash manage/assemble-fresh-fiji-installation.sh \
+              manage/update-sites-all.json \
+              $PLATFORM \
+              ${{ matrix.channel }}
 
       - name: 📤 Upload packaged 📦 Fiji artifact
         uses: actions/upload-artifact@v4
