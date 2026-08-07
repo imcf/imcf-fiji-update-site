@@ -20,7 +20,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - name: 📥 Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: 🖥️ Set platform variable
         id: set_platform
@@ -45,7 +45,7 @@ jobs:
 
       - name: 💾 Cache Fiji base package
         id: cache-fiji
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: fiji-*.zip
           key:
@@ -68,7 +68,7 @@ jobs:
               ${{ matrix.channel }}
 
       - name: 📤 Upload packaged 📦 Fiji artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: Fiji.app-${{ matrix.channel }}-${{
             steps.set_platform.outputs.PLATFORM_NAME }}
@@ -80,30 +80,30 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: 📥 Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
       - name: 📥 Download Fiji artifacts (both channels)
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: Fiji.app-fiji-latest-linux
           path: ./artifacts/Fiji.app-fiji-latest-linux
 
       - name: 📥 Download Fiji artifacts (fiji-stable linux)
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: Fiji.app-fiji-stable-linux
           path: ./artifacts/Fiji.app-fiji-stable-linux
 
       - name: 📥 Download Fiji artifacts (fiji-latest windows)
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: Fiji.app-fiji-latest-windows
           path: ./artifacts/Fiji.app-fiji-latest-windows
 
       - name: 📥 Download Fiji artifacts (fiji-stable windows)
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: Fiji.app-fiji-stable-windows
           path: ./artifacts/Fiji.app-fiji-stable-windows
