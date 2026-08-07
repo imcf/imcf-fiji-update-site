@@ -89,18 +89,18 @@ echo -n "Extracting the package: "
 # test
 unzip -q -DD "$PKG"
 # Find the extracted Fiji directory (could be 'Fiji' or 'Fiji.app')
-extracted_dir=""
-for d in Fiji*; do
-    if [ -d "$d" ]; then
-        extracted_dir="$d"
+EXTRACTED=""
+for DIR in Fiji*; do
+    if [ -d "$DIR" ]; then
+        EXTRACTED="$DIR"
         break
     fi
 done
-if [ -z "$extracted_dir" ]; then
+if [ -z "$EXTRACTED" ]; then
     echo "ERROR: no extracted Fiji directory found after unpacking $PKG"
     exit 2
 fi
-mv -- "$extracted_dir" "$FIJI_DIR"
+mv -- "$EXTRACTED" "$FIJI_DIR"
 echo -e "[DONE]\n"
 
 # Ensure launcher and jaunch helper are executable (some zip extractions
