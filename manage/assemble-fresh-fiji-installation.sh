@@ -4,9 +4,11 @@ SECONDS=0
 
 set -e # stop on errors
 
-# Print the current working directory for debugging/traceability
-echo "Current directory: $(pwd)"
-echo "$(ls)"
+# Print the current working directory and contents for debugging/traceability
+echo "======================================================================"
+echo "Current directory ($(pwd)) contents:"
+ls
+echo "======================================================================"
 
 exit_usage() {
     echo "Usage:"
@@ -36,7 +38,7 @@ if [ -d "$FIJI_DIR" ]; then
     # exit 1
 fi
 
-echo "$(uname)"
+echo "==== uname: $(uname) ===================="
 
 # we only support Linux and Windows, and only 64 bit:
 if [ "$(uname)" == "Linux" ]; then
