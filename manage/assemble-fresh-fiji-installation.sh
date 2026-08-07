@@ -4,14 +4,16 @@ SECONDS=0
 
 set -e # stop on errors
 
-# Print the current working directory for debugging/traceability
-echo "Current directory: $(pwd)"
-echo "$(ls)"
+# Print the current working directory and contents for debugging/traceability
+echo "======================================================================"
+echo "Current directory ($(pwd)) contents:"
+ls
+echo "======================================================================"
 
 exit_usage() {
     echo "Usage:"
     echo
-    echo "$0 ./list-of-update-sites.json platform"
+    echo "$0 ./list-of-update-sites.json platform [fiji-channel]"
     echo
     exit 1
 }
@@ -28,6 +30,7 @@ fi
 
 UPD_SITES=$1
 PLATFORM="$2"
+CHANNEL="${3:-fiji-latest}"
 
 FIJI_DIR="Fiji.app"
 if [ -d "$FIJI_DIR" ]; then
@@ -35,7 +38,7 @@ if [ -d "$FIJI_DIR" ]; then
     # exit 1
 fi
 
-echo "$(uname)"
+echo "==== uname: $(uname) ===================="
 
 # we only support Linux and Windows, and only 64 bit:
 if [ "$(uname)" == "Linux" ]; then
@@ -46,10 +49,19 @@ else
     PLATFORM_NUMBERED="win64"
 fi
 
-echo ">>> Working for platform: $PLATFORM"
-DL_BASE="https://downloads.imagej.net/fiji/latest"
-PKG="fiji-latest-${PLATFORM_NUMBERED}-jdk.zip"
-FIJI_DIR="Fiji.app-${PLATFORM}"
+echo ">>> Working for platform: $PLATFORM_NUMBERED"
+if [[ "$CHANNEL" == *stable* ]]; then
+    DL_BASE="https://downloads.imagej.net/fiji/stable"
+elif [[ "$CHANNEL" == *latest* ]]; then
+    DL_BASE="https://downloads.imagej.net/fiji/latest"
+else
+    # default to latest if unknown
+    DL_BASE="https://downloads.imagej.net/fiji/latest"
+fi
+PKG="${CHANNEL}-${PLATFORM_NUMBERED}-jdk.zip"
+
+# the extracted Fiji will be renamed to this below (e.g. 'Fiji.app-win64'):
+FIJI_DIR="Fiji.app-${PLATFORM_NUMBERED}"
 
 DL_URI="$DL_BASE/$PKG"
 
@@ -61,14 +73,14 @@ fi
 #     FIJI_CMD="./${FIJI_DIR}/Contents/MacOS/ImageJ-${PLATFORM}"
 # fi
 
-echo ">>> installing base ImageJ / Fiji package..."
+echo ">>> Installing base ImageJ / Fiji package..."
 if ! [ -r "$PKG" ]; then
     echo "Downloading the latest Fiji package: $DL_URI"
     echo
-    curl -k "$DL_URI" -o $PKG
+    curl -z "$PKG" -k -L "$DL_URI" -o "$PKG"
     echo "Downloaded the latest Fiji package: [$PKG]"
 else
-    echo "Using the existing fiji download package: [$PKG]"
+    echo "Using the existing Fiji download package: [$PKG]"
 fi
 echo
 
@@ -78,7 +90,21 @@ echo -n "Extracting the package: "
 # produces warnings like "cannot set UID ... Operation not permitted".
 # test
 unzip -q -DD "$PKG"
-mv "Fiji" "$FIJI_DIR"
+
+
+echo "Identify extracted Fiji directory, could be 'Fiji' or 'Fiji.app'..."
+EXTRACTED=""
+for DIR in Fiji*; do
+    if [ -d "$DIR" ]; then
+        EXTRACTED="$DIR"
+        break
+    fi
+done
+if [ -z "$EXTRACTED" ]; then
+    echo "ERROR: no extracted Fiji directory found after unpacking $PKG"
+    exit 2
+fi
+mv -v -- "$EXTRACTED" "$FIJI_DIR"
 echo -e "[DONE]\n"
 
 # Ensure launcher and jaunch helper are executable (some zip extractions
@@ -237,4 +263,4 @@ echo ">>> running updater..."
 $FIJI_CMD --headless --update update
 
 echo
-echo "DONE! Took $SECONDS seconds."
+echo "Assembling new Fiji in [$FIJI_DIR] took $SECONDS seconds. Done."

@@ -2,7 +2,7 @@ name: IMCF Fiji Assembly 🏗️
 
 on:
   push:
-    branches: [main, ga_assembly]
+    branches: [ main ]
   workflow_dispatch:
     inputs:
       reason:
@@ -11,113 +11,174 @@ on:
         default: "Manual trigger"
 
 jobs:
-  assemble-fiji:
-    strategy:
-      matrix:
-        os: [ubuntu-latest, windows-latest]
-    runs-on: ${{ matrix.os }}
-    steps:
-      - name: 📥 Checkout repository
-        uses: actions/checkout@v4
 
-      - name: 🖥️ Set platform variable
-        id: set_platform
+  common-vars:
+    name: 👷🏼 Prepare workflow run
+    runs-on: ubuntu-latest
+    outputs:
+      TIMESTAMP: ${{ steps.set-vars.outputs.TIMESTAMP }}
+    steps:
+
+      - name: 🧮 Set variables common for all jobs
+        id: set-vars
         shell: bash
         run: |
-          if [ "${{ matrix.os }}" == "windows-latest" ]; then
+          TIMESTAMP=$(date +%Y-%m-%d)
+          echo "
+          TIMESTAMP=$TIMESTAMP
+          " >> $GITHUB_OUTPUT
+
+          cat $GITHUB_OUTPUT
+
+
+  assemble-fiji:
+    name: 🏗️ Assemble Fiji Packages 📦
+    needs: common-vars
+    strategy:
+      matrix:
+        os: [ ubuntu-latest, windows-latest ]
+        channel: [ fiji-latest, fiji-stable ]
+    runs-on: ${{ matrix.os }}
+
+    steps:
+
+      - name: 🧮🌍 Make common variables available for job
+        shell: bash
+        run: |
+          echo "
+          TIMESTAMP=${{ needs.common-vars.outputs.TIMESTAMP }}
+          " >> $GITHUB_ENV
+          cat $GITHUB_ENV
+
+      - name: 🧮📍 Set job-specific variables
+        shell: bash
+        run: |
+          if [[ "${{ matrix.os }}" == windows-* ]]; then
             echo "PLATFORM=win64" >> $GITHUB_ENV
-            echo "FIJI_DIR=Fiji.app-windows" >> $GITHUB_ENV
-            echo "PLATFORM_NAME=windows" >> $GITHUB_ENV
-            echo "PLATFORM=win64" >> $GITHUB_OUTPUT
-            echo "FIJI_DIR=Fiji.app-windows" >> $GITHUB_OUTPUT
-            echo "PLATFORM_NAME=windows" >> $GITHUB_OUTPUT
+            echo "FIJI_DIR=Fiji.app-win64-${{ env.TIMESTAMP }}" >> $GITHUB_ENV
           else
             echo "PLATFORM=linux64" >> $GITHUB_ENV
-            echo "FIJI_DIR=Fiji.app-linux" >> $GITHUB_ENV
-            echo "PLATFORM_NAME=linux" >> $GITHUB_ENV
-            echo "PLATFORM=linux64" >> $GITHUB_OUTPUT
-            echo "FIJI_DIR=Fiji.app-linux" >> $GITHUB_OUTPUT
-            echo "PLATFORM_NAME=linux" >> $GITHUB_OUTPUT
+            echo "FIJI_DIR=Fiji.app-linux64-${{ env.TIMESTAMP }}" >> $GITHUB_ENV
           fi
-          echo "Platform set to $PLATFORM"
 
-      - name: 🖼️ Install X11 libraries (Linux only)
-        if: matrix.os == 'ubuntu-latest'
+          cat $GITHUB_ENV
+
+      - name: 🐛 Debug variables
+        shell: bash
         run: |
-          sudo apt-get update
-          # Install xvfb and the X11 libs ImageJ/Fiji needs
-          sudo apt-get install -y xvfb libx11-6 libxext6 libxrender1 libxtst6 libxi6
+          echo "
+          $PLATFORM (${{ env.PLATFORM }})
+          $FIJI_DIR (${{ env.FIJI_DIR }})
+          $TIMESTAMP (${{ env.TIMESTAMP }})
+          "
+
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v7
+
+      - name: 💾 Cache Fiji base package
+        id: cache-fiji
+        uses: actions/cache@v6
+        with:
+          path: fiji-*.zip
+          key:
+            fiji-base-${{ matrix.channel }}-${{ env.PLATFORM }}-${{ hashFiles('manage/assemble-fresh-fiji-installation.sh') }}
+
+      - name: 🗃 Cache 📦 APT Packages
+        if: matrix.os == 'ubuntu-latest'
+        uses: awalsh128/cache-apt-pkgs-action@v1.6.3
+        with:
+          packages:
+            xvfb
+            libx11-6
+            libxext6
+            libxrender1
+            libxtst6
+            libxi6
+          version: 1.0
 
       - name: 🏃‍♂️ Run the assembly script
         shell: bash
         run: |
-          bash manage/assemble-fresh-fiji-installation.sh manage/update-sites-all.json $PLATFORM
+          bash manage/assemble-fresh-fiji-installation.sh \
+              manage/update-sites-all.json \
+              $PLATFORM \
+              ${{ matrix.channel }}
 
-      - name: 📤 Upload Fiji artifact
-        uses: actions/upload-artifact@v4
+      - name: 🔧 Prepare Fiji directory for zipping (name, executable flags, ...)
+        shell: bash
+        run: |
+          echo PWD $(pwd)
+          echo HOME $HOME
+
+          echo "Renaming Fiji.app-${{ env.PLATFORM }} to ${{ env.FIJI_DIR }}"
+          # ls
+          mv -v "Fiji.app-${{ env.PLATFORM }}" "${{ env.FIJI_DIR }}"
+          # ls
+
+          echo "Setting executable bits for Fiji artifacts"
+          cd ${{ env.FIJI_DIR }}
+          echo PWD $(pwd)
+          chmod -Rv +x Fiji.app-* || true
+          # Ensure jaunch helper and primary launchers are executable where present
+          chmod -Rv +x fiji-linux-x64 || true
+          chmod -Rv +x fiji || true
+          chmod -Rv +x config/jaunch/jaunch-linux-x64 || true
+
+      - name: 🎁 Prepare artifacts for uploading
+        shell: bash
+        run: |
+          echo PWD $(pwd)
+          ls
+          echo "Preparing 'artifacts' dir for upload..."
+          mkdir artifacts
+          mv -v "${{ env.FIJI_DIR }}" artifacts/
+          ls artifacts
+
+      - name: 📤 Upload packaged 📦 Fiji artifact
+        uses: actions/upload-artifact@v7
         with:
-          name: Fiji.app-${{ steps.set_platform.outputs.PLATFORM_NAME }}
-          path: ${{ steps.set_platform.outputs.FIJI_DIR }}
+          name: ${{ env.FIJI_DIR }}-${{ matrix.channel }}
+          path: artifacts
+          compression-level: 1
+          retention-days: 2
+
 
   release:
-    needs: assemble-fiji
+    name: 🚚🌐 Publish Fiji Packages 📦
+    needs: [ common-vars, assemble-fiji ]
     runs-on: ubuntu-latest
     steps:
-      - name: 📥 Checkout repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
-      - name: 📥 Download Linux artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: Fiji.app-linux
-          path: ./artifacts/Fiji.app-linux
-
-      - name: 📥 Download Windows artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: Fiji.app-windows
-          path: ./artifacts/Fiji.app-windows
-
-      - name: 🔧 Ensure downloaded Fiji launchers are executable
+      - name: 🧮🌍 Make common variables available for job
+        shell: bash
         run: |
-          echo "Setting executable bits for Fiji artifacts"
-          chmod -R +x ./artifacts/Fiji.app-linux || true
-          chmod -R +x ./artifacts/Fiji.app-windows || true
-          # Ensure jaunch helper and primary launchers are executable
-          chmod +x ./artifacts/Fiji.app-linux/fiji-linux-x64 || true
-          chmod +x ./artifacts/Fiji.app-linux/fiji || true
-          chmod +x ./artifacts/Fiji.app-linux/config/jaunch/jaunch-linux-x64 || true
+          echo "
+          TIMESTAMP=${{ needs.common-vars.outputs.TIMESTAMP }}
+          " >> $GITHUB_ENV
+          cat $GITHUB_ENV
 
-      - name: 📦 Create zip files and set release tag
-        id: prepare_release
-        run: |
-          # Use a timestamp (date + time) so multiple releases on the same
-          # day get unique tags and artifact names.
-          CURRENT_DATE=$(date +%Y-%m-%d)
-          CURRENT_TIME=$(date +%H%M%S)
-          TIMESTAMP="${CURRENT_DATE}-${CURRENT_TIME}"
-          echo "RELEASE_TAG=v${TIMESTAMP}" >> $GITHUB_OUTPUT
-          echo "RELEASE_NAME=Fiji-IMCF ${CURRENT_DATE} ${CURRENT_TIME}" >> $GITHUB_OUTPUT
-          cd artifacts
-          zip -r "Fiji.app-linux-${TIMESTAMP}.zip" Fiji.app-linux
-          zip -r "Fiji.app-windows-${TIMESTAMP}.zip" Fiji.app-windows
-          cd ..
+      - name: 📥 Download Fiji artifacts
+        uses: actions/download-artifact@v8
+        with:
+          skip-decompress: true
+          merge-multiple: false
 
-      - name: 🔎 List downloaded artifacts
+      - name: 📦🔖 Collect files and set release tag
+        shell: bash
         run: |
-          echo "Artifacts dir:"
-          ls -lh ./artifacts || true
+          echo "RELEASE_TAG=v${{ needs.common-vars.outputs.TIMESTAMP }}" >> $GITHUB_ENV
+          echo PWD $(pwd)
+          mkdir collect
+          find
+          mv -v Fiji.app-*/*.zip collect/
 
       - name: 🚀 Create Release and Upload Artifacts
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v3
         with:
-          tag_name: ${{ steps.prepare_release.outputs.RELEASE_TAG }}
-          name: ${{ steps.prepare_release.outputs.RELEASE_NAME }}
-          generate_release_notes: true
+          tag_name: ${{ env.RELEASE_TAG }}
+          name: ${{ env.TIMESTAMP }}
+          generate_release_notes: false
           draft: false
           prerelease: true
           files: |
-            ./artifacts/Fiji.app-linux-*.zip
-            ./artifacts/Fiji.app-windows-*.zip
+            ./collect/*.zip
