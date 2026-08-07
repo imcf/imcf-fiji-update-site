@@ -71,14 +71,14 @@ fi
 #     FIJI_CMD="./${FIJI_DIR}/Contents/MacOS/ImageJ-${PLATFORM}"
 # fi
 
-echo ">>> installing base ImageJ / Fiji package..."
+echo ">>> Installing base ImageJ / Fiji package..."
 if ! [ -r "$PKG" ]; then
     echo "Downloading the latest Fiji package: $DL_URI"
     echo
     curl -z "$PKG" -k -L "$DL_URI" -o "$PKG"
     echo "Downloaded the latest Fiji package: [$PKG]"
 else
-    echo "Using the existing fiji download package: [$PKG]"
+    echo "Using the existing Fiji download package: [$PKG]"
 fi
 echo
 
