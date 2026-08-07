@@ -123,7 +123,7 @@ jobs:
           # Use a timestamp (date + time) so multiple releases on the same
           # day get unique tags and artifact names.
           CURRENT_DATE=$(date +%Y-%m-%d)
-          CURRENT_TIME=$(date +%H%M%S)
+          CURRENT_TIME=$(date +%H-%M)
           TIMESTAMP="${CURRENT_DATE}-${CURRENT_TIME}"
           echo "RELEASE_TAG=v${TIMESTAMP}" >> $GITHUB_OUTPUT
           echo "RELEASE_NAME=Fiji-IMCF ${CURRENT_DATE} ${CURRENT_TIME}" >> $GITHUB_OUTPUT
