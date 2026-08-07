@@ -49,8 +49,7 @@ jobs:
         with:
           path: fiji-*.zip
           key:
-            fiji-base-${{ matrix.channel }}-${{ steps.set_platform.outputs.PLATFORM
-            }}-${{ hashFiles('manage/assemble-fresh-fiji-installation.sh') }}
+            fiji-base-${{ matrix.channel }}-${{ env.PLATFORM }}-${{ hashFiles('manage/assemble-fresh-fiji-installation.sh') }}
 
       - name: 🗃 Cache 📦 APT Packages
         if: matrix.os == 'ubuntu-latest'
