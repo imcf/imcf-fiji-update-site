@@ -49,7 +49,7 @@ else
     PLATFORM_NUMBERED="win64"
 fi
 
-echo ">>> Working for platform: $PLATFORM"
+echo ">>> Working for platform: $PLATFORM_NUMBERED"
 if [[ "$CHANNEL" == *stable* ]]; then
     DL_BASE="https://downloads.imagej.net/fiji/stable"
 elif [[ "$CHANNEL" == *latest* ]]; then
@@ -59,7 +59,9 @@ else
     DL_BASE="https://downloads.imagej.net/fiji/latest"
 fi
 PKG="${CHANNEL}-${PLATFORM_NUMBERED}-jdk.zip"
-FIJI_DIR="Fiji.app-${PLATFORM}"
+
+# the extracted Fiji will be renamed to this below (e.g. 'Fiji.app-win64'):
+FIJI_DIR="Fiji.app-${PLATFORM_NUMBERED}"
 
 DL_URI="$DL_BASE/$PKG"
 
