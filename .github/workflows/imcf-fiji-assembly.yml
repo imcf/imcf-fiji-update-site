@@ -12,6 +12,7 @@ on:
 
 jobs:
   assemble-fiji:
+    name: 🏗️ Assemble Fiji Packages 📦
     strategy:
       matrix:
         os: [ ubuntu-latest, windows-latest ]
@@ -62,7 +63,7 @@ jobs:
         run: |
           bash manage/assemble-fresh-fiji-installation.sh manage/update-sites-all.json $PLATFORM ${{ matrix.channel }}
 
-      - name: 📤 Upload Fiji artifact
+      - name: 📤 Upload packaged 📦 Fiji artifact
         uses: actions/upload-artifact@v4
         with:
           name: Fiji.app-${{ matrix.channel }}-${{
@@ -70,6 +71,7 @@ jobs:
           path: ${{ steps.set_platform.outputs.FIJI_DIR }}
 
   release:
+    name: 🚚🌐 Publish Fiji Packages 📦
     needs: assemble-fiji
     runs-on: ubuntu-latest
     steps:
@@ -111,7 +113,7 @@ jobs:
           chmod -R +x ./artifacts/*/fiji || true
           chmod -R +x ./artifacts/*/config/jaunch/jaunch-linux-x64 || true
 
-      - name: 📦 Create zip files and set release tag
+      - name: 📦 Create zip files and set release tag 🔖
         id: prepare_release
         run: |
           # Use a timestamp (date + time) so multiple releases on the same
