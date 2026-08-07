@@ -52,12 +52,18 @@ jobs:
             fiji-base-${{ matrix.channel }}-${{ steps.set_platform.outputs.PLATFORM
             }}-${{ hashFiles('manage/assemble-fresh-fiji-installation.sh') }}
 
-      - name: 🛠️ Install X11 libraries (Linux only)
+      - name: 🗃 Cache 📦 APT Packages
         if: matrix.os == 'ubuntu-latest'
-        run: |
-          sudo apt-get update
-          # Install xvfb and the X11 libs ImageJ/Fiji needs
-          sudo apt-get install -y xvfb libx11-6 libxext6 libxrender1 libxtst6 libxi6
+        uses: awalsh128/cache-apt-pkgs-action@v1.6.3
+        with:
+          packages:
+            xvfb
+            libx11-6
+            libxext6
+            libxrender1
+            libxtst6
+            libxi6
+          version: 1.0
 
       - name: 🏃‍♂️ Run the assembly script
         shell: bash
