@@ -66,7 +66,7 @@ FIJI_DIR="Fiji.app-${PLATFORM_NUMBERED}"
 DL_URI="$DL_BASE/$PKG"
 
 FIJI_CMD="./${FIJI_DIR}/fiji-${PLATFORM}-x64"
-if [ "$PLATFORM" == "win" ]; then
+if [ "$PLATFORM" == "windows" ]; then
     FIJI_CMD="$FIJI_CMD.exe"
 fi
 # if [ "$PLATFORM" == "macosx" ]; then
