@@ -1,0 +1,87 @@
+name: Deploy 🚚 [UniBas-IMCF-update-site]
+
+on:
+  workflow_dispatch: # Manual runs only, from the Actions tab
+    inputs:
+      update_site:
+        description: Update site to publish to
+        type: choice
+        default: UniBas-IMCF-Beta
+        options:
+          - UniBas-IMCF-Beta
+          - UniBas-IMCF
+
+jobs:
+  publish-update-site:
+    runs-on: ubuntu-latest
+    env:
+      IJ_DOWNLOAD_URL: https://downloads.imagej.net/fiji/latest/fiji-latest-linux64-jdk.zip
+      WIKI_USER: ${{ secrets.UPDATE_SITE_USER }}
+      UPDATE_PASS: ${{ secrets.UPDATE_SITE_PASS }}
+      UPDATE_SITE: ${{ inputs.update_site || 'UniBas-IMCF-Beta' }}
+
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+
+      - name: 🌍 📥 Download Fiji
+        run: curl --silent -O ${IJ_DOWNLOAD_URL}
+
+      - name: 📦 🎈 Unzip Fiji
+        run: unzip -q fiji-latest-linux64-jdk.zip
+
+      - name: 🔁 Add Fiji update site
+        run: |
+          ./Fiji/fiji-linux-x64 \
+              --headless \
+              --update \
+                  edit-update-site \
+                  ${UPDATE_SITE} \
+                  https://sites.imagej.net/${UPDATE_SITE}/ \
+                  "webdav:${WIKI_USER}:${UPDATE_PASS}" \
+                  .
+
+      # - name: 👷 Install scripts and artifacts 💎👑 into ImageJ/Fiji
+      #   run: bash ./manage/assemble-fiji-components.sh ${UPDATE_SITE}
+
+      - name: ☕ Set up Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: 🔨 Build JARs from GitHub repositories
+        run: |
+          REPOS_JSON="site-settings/${UPDATE_SITE}/github-repos.json"
+          mkdir -p Fiji/jars build
+          : > build/jars.txt
+          jq -c '.[]' "$REPOS_JSON" | while read -r ENTRY; do
+              REPO=$(jq -r '.repo' <<<"$ENTRY")
+              REF=$(jq -r '.ref // empty' <<<"$ENTRY")
+              DEST="build/$(basename "$REPO")"
+              git clone --quiet --depth 1 ${REF:+--branch "$REF"} \
+                  "https://github.com/$REPO.git" "$DEST"
+              mvn -B -q -f "$DEST/pom.xml" package -DskipTests
+              ARTIFACT=$(mvn -B -q -f "$DEST/pom.xml" help:evaluate \
+                  -Dexpression=project.artifactId -DforceStdout)
+              VERSION=$(mvn -B -q -f "$DEST/pom.xml" help:evaluate \
+                  -Dexpression=project.version -DforceStdout)
+              JAR=$(find "$DEST/target" -maxdepth 1 -name '*.jar' \
+                  ! -name '*-sources.jar' ! -name '*-javadoc.jar' ! -name '*-tests.jar' \
+                  | head -n1)
+              # Always name the jar <artifactId>-<version>.jar
+              cp -v "$JAR" "Fiji/jars/${ARTIFACT}-${VERSION}.jar"
+              echo "${ARTIFACT}-${VERSION}.jar" >> build/jars.txt
+          done
+
+      - name: 🎁 📤 Release to ImageJ update site
+        run: |
+          JARS=$(sed 's|^|jars/|' build/jars.txt)
+          # Only upload from main, otherwise just print the command
+          DRY=""
+          [ "${GITHUB_REF_NAME}" != "main" ] && DRY="echo [DRY RUN]"
+          $DRY ./Fiji/fiji-linux-x64 \
+              --headless \
+              --update upload \
+              --update-site ${UPDATE_SITE} \
+              $JARS
