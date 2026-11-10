@@ -109,7 +109,6 @@ jobs:
             SITES_JSON=manage/update-sites.json
           fi
           bash manage/assemble-fresh-fiji-installation.sh \
-              manage/update-sites-all.json \
               "$SITES_JSON" \
               $PLATFORM \
               ${{ matrix.channel }}
