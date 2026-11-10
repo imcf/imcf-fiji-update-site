@@ -49,7 +49,7 @@ else
     PLATFORM_NUMBERED="win64"
 fi
 
-echo ">>> Working for platform: $PLATFORM_NUMBERED"
+echo ">>> Working for platform: $PLATFORM_NUMBERED ($PLATFORM)"
 if [[ "$CHANNEL" == *stable* ]]; then
     DL_BASE="https://downloads.imagej.net/fiji/stable"
 elif [[ "$CHANNEL" == *latest* ]]; then
