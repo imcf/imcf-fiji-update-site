@@ -175,8 +175,17 @@ jobs:
 
       - name: 📦🔖 Collect files and set release tag
         shell: bash
+        env:
+          BUILD_VERSION: ${{ inputs.build_version }}
         run: |
-          echo "RELEASE_TAG=v${{ needs.common-vars.outputs.TIMESTAMP }}" >> $GITHUB_ENV
+          if [ "$BUILD_VERSION" == "UniBas-IMCF-Beta" ]; then
+            echo "RELEASE_NAME=Fiji-IMCF-Beta ${{ env.TIMESTAMP }}" >> $GITHUB_ENV
+            echo "RELEASE_TAG=v${{ needs.common-vars.outputs.TIMESTAMP }}-beta" >> $GITHUB_ENV
+          else
+            echo "RELEASE_NAME=Fiji-IMCF ${{ env.TIMESTAMP }}" >> $GITHUB_ENV
+            echo "RELEASE_TAG=v${{ needs.common-vars.outputs.TIMESTAMP }}" >> $GITHUB_ENV
+          fi
+
           echo PWD $(pwd)
           mkdir collect
           find
@@ -186,9 +195,9 @@ jobs:
         uses: softprops/action-gh-release@v3
         with:
           tag_name: ${{ env.RELEASE_TAG }}
-          name: ${{ env.TIMESTAMP }}
+          name: ${{ env.RELEASE_NAME }}
           generate_release_notes: false
           draft: false
-          prerelease: true
+          prerelease: ${{ inputs.build_version == 'UniBas-IMCF-Beta' }}
           files: |
             ./collect/*.zip
