@@ -3,10 +3,13 @@ name: IMCF Fiji Assembly 🏗️
 on:
   workflow_dispatch:
     inputs:
-      reason:
-        description: "Reason for manual run"
-        required: false
-        default: "Manual trigger"
+      build_version:
+        description: IMCF Update site to use for building Fiji
+        type: choice
+        default: UniBas-IMCF
+        options:
+          - UniBas-IMCF
+          - UniBas-IMCF-Beta
 
 jobs:
 
@@ -97,9 +100,17 @@ jobs:
 
       - name: 🏃‍♂️ Run the assembly script
         shell: bash
+        env:
+          BUILD_VERSION: ${{ inputs.build_version }}
         run: |
+          if [ "$BUILD_VERSION" == "UniBas-IMCF-Beta" ]; then
+            SITES_JSON=manage/update-sites-beta.json
+          else
+            SITES_JSON=manage/update-sites.json
+          fi
           bash manage/assemble-fresh-fiji-installation.sh \
               manage/update-sites-all.json \
+              "$SITES_JSON" \
               $PLATFORM \
               ${{ matrix.channel }}
 
