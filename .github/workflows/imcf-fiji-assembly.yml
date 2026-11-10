@@ -155,7 +155,7 @@ jobs:
 
   release:
     name: 🚚🌐 Publish Fiji Packages 📦
-    needs: [ common-vars, assemble-fiji ]
+    needs: [common-vars, assemble-fiji]
     runs-on: ubuntu-latest
     steps:
 
