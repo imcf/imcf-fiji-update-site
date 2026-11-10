@@ -34,8 +34,8 @@ jobs:
     needs: common-vars
     strategy:
       matrix:
-        os: [ ubuntu-latest, windows-latest ]
-        channel: [ fiji-latest, fiji-stable ]
+        os: [ubuntu-latest, windows-latest]
+        channel: [fiji-latest, fiji-stable]
     runs-on: ${{ matrix.os }}
 
     steps:
@@ -79,7 +79,8 @@ jobs:
         with:
           path: fiji-*.zip
           key:
-            fiji-base-${{ matrix.channel }}-${{ env.PLATFORM }}-${{ hashFiles('manage/assemble-fresh-fiji-installation.sh') }}
+            fiji-base-${{ matrix.channel }}-${{ env.PLATFORM
+            }}-${{ hashFiles('manage/assemble-fresh-fiji-installation.sh') }}
 
       - name: 🗃 Cache 📦 APT Packages
         if: matrix.os == 'ubuntu-latest'
