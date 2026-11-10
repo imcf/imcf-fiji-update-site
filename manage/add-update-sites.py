@@ -1,5 +1,5 @@
-#@ AppService app
-#@ File sites_collection
+# @ AppService app
+# @ File sites_collection
 
 # pylint: disable-msg=import-error
 # pylint: disable-msg=missing-docstring
@@ -36,13 +36,15 @@ def add_update_site(collection, name, uri):
     newSite = collection.addUpdateSite(name, uri, None, None, 0)
     collection.addUpdateSite(newSite)
     newSite.setActive(True)
-    print "Enabled Update Site '%s'  [%s]" % (name, uri)
+    print(f"Enabled Update Site '{name}'  [{uri}]")
+
 
 def parseJsonc(json_file):
-        return json.loads("".join(re.split(r"[ \t]\/\/.*", json_file.read())).strip())
+    return json.loads("".join(re.split(r"[ \t]\/\/.*", json_file.read())).strip())
+
 
 sites_collection = str(sites_collection)
-print "Reading update sites from [%s]" % sites_collection
+print(f"Reading update sites from {sites_collection}]")
 with open(sites_collection) as infile:
     update_sites = parseJsonc(infile)
 
@@ -56,4 +58,4 @@ for site in update_sites:
 ijFilesCollection.markForUpdate(True)
 ijFilesCollection.write()
 
-print "\nEnabled update sites:\n%s" % ijFilesCollection.getUpdateSiteNames()
+print(f"\nEnabled update sites:\n{', '.join(ijFilesCollection.getUpdateSiteNames())}")
